@@ -112,5 +112,5 @@ function Browse-GitHubDirectory {
 # =========================
 # Point d'entrée du script
 # =========================
-Write-Host "=== Menu récursif GitHub ==="
+Write-Host "=== Menu SLAUNAY script ==="
 Browse-GitHubDirectory -GithubUser $User -GithubRepo $Repo -PathInRepo $MainFolderPath
