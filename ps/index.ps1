@@ -4,32 +4,26 @@
 $User = "sidlaunay"
 $Repo = "script-public"
 $MainFolderPath = "ps"  # Le dossier de départ dans le repo
-$RawBaseUrl = "https://dev.slaunay.com/ps"  # L'URL reverse-proxy vers GitHub (Nginx)
+$RawBaseUrl = "https://dev.slaunay.com/ps"  # L'URL reverse-proxy vers GitHub
 # =============================
 
 function Browse-GitHubDirectory {
     param(
         [string]$GithubUser,
         [string]$GithubRepo,
-        [string]$PathInRepo  # chemin relatif (ex: "ps", "ps/administration", etc.)
+        [string]$PathInRepo
     )
 
-    # -- Forcer le protocole TLS 1.2 sur PowerShell 5.x si besoin --
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    # -- Définir un User-Agent explicite pour l'API GitHub --
     $headers = @{
         "User-Agent" = "SidLaunayPowerShellScript"
     }
 
-    # 1) Construire l'URL de l'API GitHub
     $apiUrl = "https://api.github.com/repos/$GithubUser/$GithubRepo/contents/$PathInRepo"
-
-    Write-Host "`n--- Lecture du dossier '$PathInRepo' ---`n"
-    Write-Host "DEBUG: Appel API => $apiUrl"
+    Write-Host "`n--- Lecture du dossier '$PathInRepo' ---`nDEBUG: Appel API => $apiUrl"
 
     try {
-        # 2) Appeler l'API (sans -UseBasicParsing)
         $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
     }
     catch {
@@ -37,7 +31,7 @@ function Browse-GitHubDirectory {
         return
     }
 
-    # -- DEBUG : Afficher le contenu brut renvoyé par l'API --
+    # Debug
     Write-Host "`n=== DEBUG : Contenu brut renvoyé par l'API ==="
     try {
         $jsonDebug = $response | ConvertTo-Json -Depth 10
@@ -49,43 +43,48 @@ function Browse-GitHubDirectory {
     }
     Write-Host "=============================================`n"
 
-    # 2.5) Si l'API retourne un seul objet au lieu d'un tableau, on le force en tableau
+    # Forcer en tableau s'il n'y a qu'un seul fichier
     if ($null -ne $response -and -not ($response -is [System.Collections.IEnumerable])) {
+        Write-Host "DEBUG: Forcing single object into array..."
         $response = ,$response
     }
 
-    # 3) Filtrer dossiers vs fichiers
-    $directories = $response | Where-Object { $_.type -eq 'dir' }
-    $files       = $response | Where-Object { $_.type -eq 'file' }
+    # === Approche 1 ===
+    # On essaie $_."type" dans Where-Object
+    $directories = $response | Where-Object { $_."type" -eq 'dir' }
+    $files       = $response | Where-Object { $_."type" -eq 'file' }
 
-    # (Optionnel) Exclure index.ps1, index.html, etc.
-    # $files = $files | Where-Object { $_.name -notin 'index.ps1', 'index.html' }
+    # Si ça ne fonctionne pas (aucun résultat alors qu'on devrait), on tente Approche 2
+    if (($directories.Count + $files.Count) -eq 0 -and $response) {
+        Write-Host "DEBUG: 'Approche 1' n'a rien trouvé alors qu'on a un objet. Tentons 'Approche 2'..."
+        $directories = @()
+        $files       = @()
+
+        foreach ($item in $response) {
+            $valType = $item.PSObject.Properties["type"].Value
+            if ($valType -eq "dir") {
+                $directories += $item
+            }
+            elseif ($valType -eq "file") {
+                $files += $item
+            }
+        }
+    }
 
     if (($directories.Count + $files.Count) -eq 0) {
         Write-Host "Aucun sous-dossier ni fichier ici."
         return
     }
 
-    # 4) Construire un menu (dossiers + fichiers)
+    # Construction du menu
     $menuItems = New-Object System.Collections.Generic.List[PSObject]
-
-    # Ajouter d'abord les dossiers
     foreach ($dir in $directories) {
-        $menuItems.Add([PSCustomObject]@{
-            Type = "dir"
-            Name = $dir.name
-        })
+        $menuItems.Add([PSCustomObject]@{ Type = "dir"; Name = $dir.name })
     }
-
-    # Ensuite les fichiers
     foreach ($f in $files) {
-        $menuItems.Add([PSCustomObject]@{
-            Type = "file"
-            Name = $f.name
-        })
+        $menuItems.Add([PSCustomObject]@{ Type = "file"; Name = $f.name })
     }
 
-    # 5) Afficher le menu
     Write-Host "Contenu de '$PathInRepo' :"
     for ($i = 0; $i -lt $menuItems.Count; $i++) {
         $num  = $i + 1
@@ -102,7 +101,6 @@ function Browse-GitHubDirectory {
 
     Write-Host
     $choice = Read-Host "Tapez un numéro pour ouvrir un dossier ou exécuter un fichier (1-$($menuItems.Count)) - ou Q pour quitter"
-
     if ($choice -eq 'Q') {
         Write-Host "Quitter."
         return
@@ -114,27 +112,17 @@ function Browse-GitHubDirectory {
     }
 
     $selectedItem = $menuItems[[int]$choice - 1]
-
-    # 6) Action selon le type (dossier ou fichier)
     if ($selectedItem.Type -eq "dir") {
-        # => On descend dans ce dossier
         $subFolder = "$PathInRepo/$($selectedItem.Name)"
         Browse-GitHubDirectory -GithubUser $GithubUser -GithubRepo $GithubRepo -PathInRepo $subFolder
     }
     else {
-        # => C'est un fichier : on l'exécute
         $fileName = $selectedItem.Name
-        $fullPath = "$PathInRepo/$fileName"  # ex: "ps/administration/printer.ps1"
+        $fullPath = "$PathInRepo/$fileName"
         Write-Host "Chargement de $fullPath ..."
-
-        # On télécharge et exécute via l'URL reverse-proxy (raw)
         iex (irm "$RawBaseUrl/$fullPath")
     }
 }
 
-
-# =========================
-# Point d'entrée du script
-# =========================
 Write-Host "=== Menu SLAUNAY script ==="
 Browse-GitHubDirectory -GithubUser $User -GithubRepo $Repo -PathInRepo $MainFolderPath
