@@ -51,12 +51,13 @@ function Load-Files {
 }
 
 # =============================
-# Construire l'arborescence avec descriptions
+# Construire l'arborescence avec descriptions (Inclure tous les dossiers)
 # =============================
 function Build-Tree {
     param([string[]]$Files)
 
     $Tree = @{ "Folders" = @{}; "Files" = @() }
+    $AllFolders = @{}  # Stocker tous les dossiers trouvés
 
     foreach ($Entry in $Files) {
         if ($Entry -match "(.+?)\|(.+)") {
@@ -68,17 +69,34 @@ function Build-Tree {
 
             for ($i = 0; $i -lt $Parts.Count; $i++) {
                 $Part = $Parts[$i]
+                $CurrentPath = ($Parts[0..$i] -join "/")
 
                 if ($i -eq $Parts.Count - 1) {
+                    # Ajouter un fichier
                     if (-not $Current.ContainsKey("Files")) { $Current["Files"] = @() }
                     $Current["Files"] += @{ Name = $Part; Description = $Description }
                 } else {
-                    if (-not $Current["Folders"].ContainsKey($Part)) { 
-                        $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() } 
+                    # Ajouter un dossier s'il n'existe pas
+                    if (-not $Current["Folders"].ContainsKey($Part)) {
+                        $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() }
                     }
                     $Current = $Current["Folders"][$Part]
+                    $AllFolders[$CurrentPath] = $Current
                 }
             }
+        }
+    }
+
+    # Vérifier que tous les dossiers de la liste existent bien dans l'arborescence
+    foreach ($FolderPath in $AllFolders.Keys) {
+        $Parts = $FolderPath -split "/"
+        $Current = $Tree
+        for ($i = 0; $i -lt $Parts.Count; $i++) {
+            $Part = $Parts[$i]
+            if (-not $Current["Folders"].ContainsKey($Part)) {
+                $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() }
+            }
+            $Current = $Current["Folders"][$Part]
         }
     }
 
@@ -164,4 +182,4 @@ Browse-Folder -Node $Tree
 
 
 
-# 20.02.25 22.43
+# 20.02.25 22.48
