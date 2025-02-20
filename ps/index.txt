@@ -1,5 +1,5 @@
 
 index.ps1|Aucune description disponible
-debug/_debug_index.ps1|Aucune description disponible
+debug/_debug_index.ps1|Script de débogage pour afficher et tester la structure des fichiers du menu SLAUNAY
 test1.ps1|Aucune description disponible
 administration/printer.ps1|Ouvre l'ancien menu des imprimantes et scanners du Panneau de configuration
