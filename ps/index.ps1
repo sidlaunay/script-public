@@ -1,5 +1,5 @@
 # =============================
-# Paramètres
+# Configuration
 # =============================
 $RepoBaseUrl = "https://dev.slaunay.com/ps"
 
@@ -8,9 +8,9 @@ $RepoBaseUrl = "https://dev.slaunay.com/ps"
 # =============================
 Write-Host "🔄 Récupération de la liste des scripts disponibles..."
 try {
-    $FileList = Invoke-RestMethod -Uri "$RepoBaseUrl"
+    $FileList = Invoke-RestMethod -Uri "$RepoBaseUrl/index.txt"
 } catch {
-    Write-Host "❌ ERREUR : Impossible de charger la liste des scripts. Vérifiez l'accès à $RepoBaseUrl"
+    Write-Host "❌ ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
     exit
 }
 
@@ -30,7 +30,7 @@ if ($Scripts.Count -eq 0) {
 # =============================
 Write-Host "`n📜 Liste des scripts disponibles :"
 for ($i = 0; $i -lt $Scripts.Count; $i++) {
-    Write-Host "$($i+1)) $($Scripts[$i])"
+    Write-Host "$($i + 1)) $($Scripts[$i])"
 }
 
 Write-Host "`n🔙 Q) Quitter"
@@ -44,11 +44,17 @@ if ($Choice -eq "Q") {
 if ($Choice -match "^\d+$" -and [int]$Choice -gt 0 -and [int]$Choice -le $Scripts.Count) {
     $ScriptToRun = $Scripts[[int]$Choice - 1]
     Write-Host "▶️ Exécution du script : $ScriptToRun ..."
-    Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$ScriptToRun")
+    try {
+        Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$ScriptToRun")
+    } catch {
+        Write-Host "❌ Impossible d'exécuter le script : $($_.Exception.Message)"
+    }
 } else {
     Write-Host "❌ Choix invalide."
 }
 
+}
 
 
-# 20.02.25 21.23
+
+# 20.02.25 21.46
