@@ -30,7 +30,7 @@ function Show-Logo {
 }
 
 # =============================
-# Charger les fichiers avec description
+# Charger les fichiers avec description et inclure tous les dossiers
 # =============================
 function Load-Files {
     Write-Host "Chargement de la liste des scripts disponibles..."
@@ -87,7 +87,7 @@ function Build-Tree {
         }
     }
 
-    # Vérifier que tous les dossiers de la liste existent bien dans l'arborescence
+    # Ajouter manuellement tous les dossiers à l’arborescence
     foreach ($FolderPath in $AllFolders.Keys) {
         $Parts = $FolderPath -split "/"
         $Current = $Tree
@@ -182,4 +182,4 @@ Browse-Folder -Node $Tree
 
 
 
-# 20.02.25 22.48
+# 20.02.25 22.53
