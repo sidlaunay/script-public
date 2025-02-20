@@ -53,7 +53,6 @@ if ($Choice -match "^\d+$" -and [int]$Choice -gt 0 -and [int]$Choice -le $Script
     Write-Host "❌ Choix invalide."
 }
 
-}
 
 
 
