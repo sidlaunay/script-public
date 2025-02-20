@@ -1,4 +1,10 @@
 # =============================
+# Execution
+# =============================
+#
+#  irm https://dev.slaunay.com/ps | iex
+#
+# =============================
 # Configuration
 # =============================
 $RepoBaseUrl = "https://dev.slaunay.com/ps"
