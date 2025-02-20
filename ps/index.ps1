@@ -1,5 +1,5 @@
 # =============================
-# Paramètres GitHub et Proxy
+# Configuration des paramètres GitHub et Proxy
 # =============================
 $Owner         = "sidlaunay"
 $Repo          = "script-public"
@@ -12,7 +12,7 @@ $Headers = @{
 }
 
 # =============================
-# Vérification de la connexion à GitHub API
+# Vérification de la connexion à l'API GitHub
 # =============================
 $TreeUrl = "https://api.github.com/repos/$Owner/$Repo/git/trees/$Branch?recursive=1"
 Write-Host "🔄 Chargement de l'arborescence complète '$Owner/$Repo' (branche $Branch) ..."
@@ -21,7 +21,11 @@ Write-Host "DEBUG: URL = $TreeUrl"
 try {
     $AllData = Invoke-RestMethod -Uri $TreeUrl -Headers $Headers
 } catch {
-    Write-Host "❌ ERREUR : Impossible de charger l'arborescence. $($_.Exception.Message)"
+    Write-Host "❌ ERREUR : Impossible de charger l'arborescence. Vérifiez :"
+    Write-Host "   - L'existence du repo '$Owner/$Repo'"
+    Write-Host "   - La branche '$Branch' (peut-être 'master' au lieu de 'main')"
+    Write-Host "   - Votre connexion Internet"
+    Write-Host "   - Si le repo est privé, utilisez un token d'authentification"
     return
 }
 
@@ -49,8 +53,7 @@ function New-Node($Name, $IsDir) {
 }
 
 $RootNode = New-Node -Name "ROOT" -IsDir $true
-$NodeByPath = @{}
-$NodeByPath[""] = $RootNode
+$NodeByPath = @{"" = $RootNode}
 
 foreach ($Item in $AllItems) {
     $FullPath = $Item.path
@@ -88,12 +91,8 @@ function Browse-Node($Node, $ParentPath) {
         Write-Host "(Aucun sous-dossier ni fichier)"
     } else {
         $MenuItems = @()
-        foreach ($D in $Dirs) {
-            $MenuItems += [PSCustomObject]@{ Type = "dir"; Node = $D }
-        }
-        foreach ($F in $Files) {
-            $MenuItems += [PSCustomObject]@{ Type = "file"; Node = $F }
-        }
+        foreach ($D in $Dirs) { $MenuItems += [PSCustomObject]@{ Type = "dir"; Node = $D } }
+        foreach ($F in $Files) { $MenuItems += [PSCustomObject]@{ Type = "file"; Node = $F } }
 
         for ($i=0; $i -lt $MenuItems.Count; $i++) {
             $Num = $i+1
@@ -120,14 +119,22 @@ function Browse-Node($Node, $ParentPath) {
                 $SubNode = $Selected.Node
                 $SubPath = if ($ParentPath) { "$ParentPath/$($SubNode.Name)" } else { $SubNode.Name }
                 $Res = Browse-Node $SubNode $SubPath
-                if ($Res -eq "UP") {
-                    return "DOWNCANCELED"
-                }
+                if ($Res -eq "UP") { return "DOWNCANCELED" }
             } else {
                 $FileNode = $Selected.Node
                 $FilePath = if ($ParentPath) { "$ParentPath/$($FileNode.Name)" } else { $FileNode.Name }
                 Write-Host "▶️ Exécution du fichier $FilePath ..."
-                iex (irm "$RawBaseUrl/$FilePath")
+
+                # Sécurisation : Exécute seulement si c'est un fichier .ps1
+                if ($FilePath -match "\.ps1$") {
+                    try {
+                        iex (irm "$RawBaseUrl/$FilePath")
+                    } catch {
+                        Write-Host "❌ ERREUR : Impossible d'exécuter $FilePath"
+                    }
+                } else {
+                    Write-Host "⚠️ Ce fichier ne peut pas être exécuté."
+                }
             }
         } else {
             Write-Host "❌ Choix invalide."
