@@ -4,66 +4,158 @@
 $RepoBaseUrl = "https://dev.slaunay.com/ps"
 
 # =============================
+# Afficher le logo ASCII (toujours visible en haut)
+# =============================
+function Show-Logo {
+    Write-Host "`n"
+    Write-Host "       ++************                                                                                                 "
+    Write-Host "    =++++++*************                                                                                              "
+    Write-Host "  =====++++++++*****+=-:::                                                                                            "
+    Write-Host " =========++++++=:::::::::-                     @@@@                                                                 "
+    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                 "
+    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                 "
+    Write-Host "---==============----========      @@@@@       @@@@@   @@@@@@@@@   @@@@  @@@@   @@@@@@@@@     @@@@@ @@@  @@@@    @@@@ "
+    Write-Host "------=======================      @@@@@@@@    @@@@  @@@@@@@@@@@@ @@@@@  @@@@  @@@@@@@@@@@  @@@@@@@@@@@@ @@@@@  @@@@@ "
+    Write-Host ":--------====================        @@@@@@@  @@@@@ @@@@@@  @@@@  @@@@@  @@@@  @@@@@ @@@@@  @@@@@  @@@@   @@@@@@@@@@  "
+    Write-Host ":::::--------============+++       @@   @@@@  @@@@@ @@@@@   @@@@  @@@@@  @@@@  @@@@  @@@@@ @@@@@   @@@@    @@@@@@@@   "
+    Write-Host "::::::::--------=======+++++     @@@@@@@@@@@  @@@@@  @@@@@@@@@@@  @@@@@@@@@@@  @@@@  @@@@@  @@@@@@@@@@@    @@@@@@@    "
+    Write-Host " ::::::::::--------==+++***       @@@@@@@@@   @@@@    @@@@@@@@@@   @@@@@@@@@   @@@@  @@@@    @@@@@@@@@     @@@@@@     "
+    Write-Host "  ::::::::::::-----=******                                                                                @@@@@       "
+    Write-Host "    ::::::::::::-=******                                                                                 @@@@@        "
+    Write-Host "       :::::::-+*****                                                                                    @@@@         "
+    Write-Host "`n"
+    Write-Host "========================================"
+    Write-Host "         MENU SLAUNAY SCRIPT            "
+    Write-Host "========================================`n"
+}
+
+# =============================
 # Charger les fichiers avec description
 # =============================
-Write-Host "Chargement de la liste des scripts disponibles..."
-try {
-    $FileList = Invoke-RestMethod -Uri "$RepoBaseUrl/index.txt"
-} catch {
-    Write-Host "ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
-    exit
-}
+function Load-Files {
+    Write-Host "Chargement de la liste des scripts disponibles..."
+    try {
+        $FileList = Invoke-RestMethod -Uri "$RepoBaseUrl/index.txt"
+    } catch {
+        Write-Host "ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
+        exit
+    }
 
-if (-not $FileList) {
-    Write-Host "Aucun script trouvé sur le serveur."
-    exit
+    if (-not $FileList) {
+        Write-Host "Aucun script trouvé sur le serveur."
+        exit
+    }
+
+    return $FileList -split "`n" | Where-Object { $_ -match "\.ps1\|" }
 }
 
 # =============================
-# Construire la liste avec descriptions
+# Construire l'arborescence avec descriptions
 # =============================
-$Scripts = @()
-$FileList -split "`n" | ForEach-Object {
-    if ($_ -match "(.+?)\|(.+)") {
-        $Scripts += [PSCustomObject]@{
-            Path = $matches[1]
-            Description = $matches[2]
+function Build-Tree {
+    param([string[]]$Files)
+
+    $Tree = @{}
+
+    foreach ($Entry in $Files) {
+        if ($Entry -match "(.+?)\|(.+)") {
+            $FilePath = $matches[1]
+            $Description = $matches[2]
+
+            $Parts = $FilePath -split "/"
+            $Current = $Tree
+
+            for ($i = 0; $i -lt $Parts.Count; $i++) {
+                $Part = $Parts[$i]
+
+                if ($i -eq $Parts.Count - 1) {
+                    if (-not $Current.ContainsKey("Files")) { $Current["Files"] = @() }
+                    $Current["Files"] += @{ Name = $Part; Description = $Description }
+                } else {
+                    if (-not $Current.ContainsKey("Folders")) { $Current["Folders"] = @{} }
+                    if (-not $Current["Folders"].ContainsKey($Part)) { $Current["Folders"][$Part] = @{} }
+                    $Current = $Current["Folders"][$Part]
+                }
+            }
+        }
+    }
+
+    return $Tree
+}
+
+# =============================
+# Fonction de navigation
+# =============================
+function Browse-Folder {
+    param(
+        [Hashtable]$Node,
+        [String]$Path = ""
+    )
+
+    while ($true) {
+        Clear-Host  # Nettoie la console avant d'afficher le logo
+        Show-Logo   # Affiche toujours le logo en haut du menu
+
+        Write-Host "`nContenu de: $Path"
+
+        $Items = @()
+        if ($Node.ContainsKey("Folders")) {
+            foreach ($Folder in $Node["Folders"].Keys) {
+                $Items += @{ Type = "Folder"; Name = $Folder; Node = $Node["Folders"][$Folder] }
+            }
+        }
+        if ($Node.ContainsKey("Files")) {
+            foreach ($File in $Node["Files"]) {
+                $Items += @{ Type = "File"; Name = $File.Name; Description = $File.Description }
+            }
+        }
+
+        for ($i = 0; $i -lt $Items.Count; $i++) {
+            $Num = $i + 1
+            if ($Items[$i].Type -eq "Folder") {
+                Write-Host "$Num) [Dossier] $($Items[$i].Name)"
+            } else {
+                Write-Host "$Num) $($Items[$i].Name) - $($Items[$i].Description)"
+            }
+        }
+
+        Write-Host "`n0) Revenir en arrière"
+        Write-Host "Q) Quitter"
+
+        $Choice = Read-Host "`nChoisissez une option"
+
+        if ($Choice -eq "Q") {
+            Write-Host "`nFermeture du programme."
+            exit
+        } elseif ($Choice -eq "0") {
+            return
+        } elseif ($Choice -match "^\d+$" -and [int]$Choice -gt 0 -and [int]$Choice -le $Items.Count) {
+            $Selected = $Items[[int]$Choice - 1]
+
+            if ($Selected.Type -eq "Folder") {
+                Browse-Folder -Node $Selected.Node -Path ("$Path/$($Selected.Name)").TrimStart("/")
+            } else {
+                $FilePath = ("$Path/$($Selected.Name)").TrimStart("/")
+                Write-Host "Exécution du script : $FilePath ..."
+                try {
+                    Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$FilePath")
+                } catch {
+                    Write-Host "ERREUR : Impossible d'exécuter le script : $($_.Exception.Message)"
+                }
+            }
+        } else {
+            Write-Host "Choix invalide."
         }
     }
 }
 
-if ($Scripts.Count -eq 0) {
-    Write-Host "Aucun script PowerShell trouvé."
-    exit
-}
-
 # =============================
-# Affichage du menu
+# Démarrer la navigation
 # =============================
-Write-Host "`nListe des scripts disponibles :"
-for ($i = 0; $i -lt $Scripts.Count; $i++) {
-    Write-Host "$($i + 1)) $($Scripts[$i].Path) - $($Scripts[$i].Description)"
-}
-
-Write-Host "`n0) Quitter"
-$Choice = Read-Host "`nChoisissez un script à exécuter (1-$($Scripts.Count))"
-
-if ($Choice -eq "0") {
-    Write-Host "Fermeture du programme."
-    exit
-}
-
-if ($Choice -match "^\d+$" -and [int]$Choice -gt 0 -and [int]$Choice -le $Scripts.Count) {
-    $ScriptToRun = $Scripts[[int]$Choice - 1]
-    Write-Host "▶️ Exécution du script : $($ScriptToRun.Path)"
-    try {
-        Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$($ScriptToRun.Path)")
-    } catch {
-        Write-Host "ERREUR : Impossible d'exécuter le script : $($_.Exception.Message)"
-    }
-} else {
-    Write-Host "Choix invalide."
-}
+Show-Logo  # 🔥 Affiche le logo une fois au début
+$Files = Load-Files
+$Tree = Build-Tree -Files $Files
+Browse-Folder -Node $Tree
 
 
 
@@ -71,4 +163,5 @@ if ($Choice -match "^\d+$" -and [int]$Choice -gt 0 -and [int]$Choice -le $Script
 
 
 
-# 20.02.25 22.16
+
+# 20.02.25 22.23
