@@ -4,51 +4,79 @@
 $RepoBaseUrl = "https://dev.slaunay.com/ps"
 
 # =============================
-# Récupération de la liste des fichiers
+# Affichage du Logo ASCII
 # =============================
-Write-Host "========================================"
-Write-Host "         MENU SLAUNAY SCRIPT           "
-Write-Host "========================================`n"
-
-Write-Host "Chargement de la liste des scripts disponibles..."
-try {
-    $FileList = Invoke-RestMethod -Uri "$RepoBaseUrl/index.txt"
-} catch {
-    Write-Host "ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
-    exit
+function Show-Logo {
+    Clear-Host  # Nettoie la console avant d'afficher le logo
+    Write-Host "`n"
+    Write-Host "       ++************                                                                                                 "
+    Write-Host "    =++++++*************                                                                                              "
+    Write-Host "  =====++++++++*****+=-:::                                                                                            "
+    Write-Host " =========++++++=:::::::::-                     @@@@                                                                 "
+    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                 "
+    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                 "
+    Write-Host "---==============----========      @@@@@       @@@@@   @@@@@@@@@   @@@@  @@@@   @@@@@@@@@     @@@@@ @@@  @@@@    @@@@ "
+    Write-Host "------=======================      @@@@@@@@    @@@@  @@@@@@@@@@@@ @@@@@  @@@@  @@@@@@@@@@@  @@@@@@@@@@@@ @@@@@  @@@@@ "
+    Write-Host ":--------====================        @@@@@@@  @@@@@ @@@@@@  @@@@  @@@@@  @@@@  @@@@@ @@@@@  @@@@@  @@@@   @@@@@@@@@@  "
+    Write-Host ":::::--------============+++       @@   @@@@  @@@@@ @@@@@   @@@@  @@@@@  @@@@  @@@@  @@@@@ @@@@@   @@@@    @@@@@@@@   "
+    Write-Host "::::::::--------=======+++++     @@@@@@@@@@@  @@@@@  @@@@@@@@@@@  @@@@@@@@@@@  @@@@  @@@@@  @@@@@@@@@@@    @@@@@@@    "
+    Write-Host " ::::::::::--------==+++***       @@@@@@@@@   @@@@    @@@@@@@@@@   @@@@@@@@@   @@@@  @@@@    @@@@@@@@@     @@@@@@     "
+    Write-Host "  ::::::::::::-----=******                                                                                @@@@@       "
+    Write-Host "    ::::::::::::-=******                                                                                 @@@@@        "
+    Write-Host "       :::::::-+*****                                                                                    @@@@         "
+    Write-Host "`n"
+    Write-Host "========================================"
+    Write-Host "         MENU SLAUNAY SCRIPT            "
+    Write-Host "========================================`n"
 }
 
-if (-not $FileList) {
-    Write-Host "Aucun script trouvé sur le serveur."
-    exit
+# =============================
+# Récupération de la liste des fichiers
+# =============================
+function Load-Files {
+    Write-Host "Chargement de la liste des scripts disponibles..."
+    try {
+        $FileList = Invoke-RestMethod -Uri "$RepoBaseUrl/index.txt"
+    } catch {
+        Write-Host "ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
+        exit
+    }
+
+    if (-not $FileList) {
+        Write-Host "Aucun script trouvé sur le serveur."
+        exit
+    }
+
+    return $FileList -split "`n" | Where-Object { $_ -match "\.ps1$" -and $_ -ne "index.ps1" }
 }
 
 # =============================
 # Construction de l'arborescence
 # =============================
-$AllFiles = $FileList -split "`n" | Where-Object { $_ -match "\.ps1$" -and $_ -ne "index.ps1" }
+function Build-Tree {
+    param([string[]]$Files)
 
-# Convertir en structure de dossiers
-$Tree = @{}
+    $Tree = @{}
 
-foreach ($File in $AllFiles) {
-    $Parts = $File -split "/"
-    $Current = $Tree
+    foreach ($File in $Files) {
+        $Parts = $File -split "/"
+        $Current = $Tree
 
-    for ($i = 0; $i -lt $Parts.Count; $i++) {
-        $Part = $Parts[$i]
+        for ($i = 0; $i -lt $Parts.Count; $i++) {
+            $Part = $Parts[$i]
 
-        if ($i -eq $Parts.Count - 1) {
-            # Dernier élément, c'est un fichier
-            if (-not $Current.ContainsKey("Files")) { $Current["Files"] = @() }
-            $Current["Files"] += $Part
-        } else {
-            # C'est un dossier
-            if (-not $Current.ContainsKey("Folders")) { $Current["Folders"] = @{} }
-            if (-not $Current["Folders"].ContainsKey($Part)) { $Current["Folders"][$Part] = @{} }
-            $Current = $Current["Folders"][$Part]
+            if ($i -eq $Parts.Count - 1) {
+                if (-not $Current.ContainsKey("Files")) { $Current["Files"] = @() }
+                $Current["Files"] += $Part
+            } else {
+                if (-not $Current.ContainsKey("Folders")) { $Current["Folders"] = @{} }
+                if (-not $Current["Folders"].ContainsKey($Part)) { $Current["Folders"][$Part] = @{} }
+                $Current = $Current["Folders"][$Part]
+            }
         }
     }
+
+    return $Tree
 }
 
 # =============================
@@ -61,6 +89,8 @@ function Browse-Folder {
     )
 
     while ($true) {
+        Show-Logo  # Affiche le logo à chaque affichage du menu
+
         Write-Host "`nContenu de: $Path"
         
         $Items = @()
@@ -116,35 +146,15 @@ function Browse-Folder {
 }
 
 # =============================
-# Afficher le logo ASCII
-# =============================
-function Show-Logo {
-    Write-Host "`n"
-    Write-Host "       ++************                                                                                                 "
-    Write-Host "    =++++++*************                                                                                              "
-    Write-Host "  =====++++++++*****+=-:::                                                                                            "
-    Write-Host " =========++++++=:::::::::-                     @@@@                                                                 "
-    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                 "
-    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                 "
-    Write-Host "---==============----========      @@@@@       @@@@@   @@@@@@@@@   @@@@  @@@@   @@@@@@@@@     @@@@@ @@@  @@@@    @@@@ "
-    Write-Host "------=======================      @@@@@@@@    @@@@  @@@@@@@@@@@@ @@@@@  @@@@  @@@@@@@@@@@  @@@@@@@@@@@@ @@@@@  @@@@@ "
-    Write-Host ":--------====================        @@@@@@@  @@@@@ @@@@@@  @@@@  @@@@@  @@@@  @@@@@ @@@@@  @@@@@  @@@@   @@@@@@@@@@  "
-    Write-Host ":::::--------============+++       @@   @@@@  @@@@@ @@@@@   @@@@  @@@@@  @@@@  @@@@  @@@@@ @@@@@   @@@@    @@@@@@@@   "
-    Write-Host "::::::::--------=======+++++     @@@@@@@@@@@  @@@@@  @@@@@@@@@@@  @@@@@@@@@@@  @@@@  @@@@@  @@@@@@@@@@@    @@@@@@@    "
-    Write-Host " ::::::::::--------==+++***       @@@@@@@@@   @@@@    @@@@@@@@@@   @@@@@@@@@   @@@@  @@@@    @@@@@@@@@     @@@@@@     "
-    Write-Host "  ::::::::::::-----=******                                                                                @@@@@       "
-    Write-Host "    ::::::::::::-=******                                                                                 @@@@@        "
-    Write-Host "       :::::::-+*****                                                                                    @@@@         "
-    Write-Host "`n"
-}
-
-# =============================
 # Démarrer la navigation
 # =============================
+Show-Logo
+$Files = Load-Files
+$Tree = Build-Tree -Files $Files
 Browse-Folder -Node $Tree
 
 
 
 
 
-# 20.02.25 22.06
+# 20.02.25 22.09
