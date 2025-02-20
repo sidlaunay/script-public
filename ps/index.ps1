@@ -12,8 +12,16 @@ function Browse-GitHubDirectory {
     param(
         [string]$GithubUser,
         [string]$GithubRepo,
-        [string]$PathInRepo  # chemin relatif (ex: "ps", "ps/Administration" etc.)
+        [string]$PathInRepo  # chemin relatif (ex: "ps", "ps/administration" etc.)
     )
+
+    # Sur les versions Windows plus anciennes, s'assurer du support TLS 1.2
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    # On définit un user-agent explicite (indispensable pour l'API GitHub)
+    $headers = @{
+        "User-Agent" = "SidLaunayPowerShellScript"
+    }
 
     # 1) Construire l'URL de l'API GitHub
     $apiUrl = "https://api.github.com/repos/$GithubUser/$GithubRepo/contents/$PathInRepo"
@@ -22,7 +30,8 @@ function Browse-GitHubDirectory {
     Write-Host "`n--- Lecture du dossier '$PathInRepo' ---`n"
 
     try {
-        $response = Invoke-RestMethod -Uri $apiUrl -UseBasicParsing
+        # Important : pas de -UseBasicParsing
+        $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
     }
     catch {
         Write-Host "Erreur d'accès à l'API GitHub pour $apiUrl : $($_.Exception.Message)"
@@ -33,7 +42,7 @@ function Browse-GitHubDirectory {
     $directories = $response | Where-Object { $_.type -eq 'dir' }
     $files       = $response | Where-Object { $_.type -eq 'file' }
 
-    # Exclure éventuellement index.ps1 / index.html si tu ne veux jamais les voir
+    # (Optionnel) Exclure index.ps1 et index.html si tu ne veux pas les lister
     # $files = $files | Where-Object { $_.name -notin 'index.ps1', 'index.html' }
 
     if (($directories.Count + $files.Count) -eq 0) {
@@ -42,8 +51,6 @@ function Browse-GitHubDirectory {
     }
 
     # 3) Construire un menu
-    #    On va faire une liste de tous les items (dossiers + fichiers).
-    #    On les stocke dans un tableau [Item], où on garde le type et le nom.
     $menuItems = New-Object System.Collections.Generic.List[PSObject]
 
     # Ajouter d'abord les dossiers
@@ -101,13 +108,14 @@ function Browse-GitHubDirectory {
     else {
         # => C'est un fichier: on l'exécute
         $fileName = $selectedItem.Name
-        $fullPath = "$PathInRepo/$fileName"  # Ex: "ps/Administration/printer.ps1"
+        $fullPath = "$PathInRepo/$fileName"  # ex: "ps/administration/printer.ps1"
         Write-Host "Chargement de $fullPath ..."
 
-        # On télécharge et exécute via l'URL (reverse-proxy)
+        # On télécharge et exécute via l'URL reverse-proxy sur dev.slaunay.com
         iex (irm "$RawBaseUrl/$fullPath")
     }
 }
+
 
 # =========================
 # Point d'entrée du script
