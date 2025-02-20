@@ -46,8 +46,8 @@ function Load-Files {
         exit
     }
 
-    # Supprimer index.ps1 et index.txt de la liste
-    return $FileList -split "`n" | Where-Object { $_ -match "\.ps1\|" -and $_ -notmatch "index.ps1\|" -and $_ -notmatch "index.txt\|" }
+    # Supprimer index.ps1 de la liste
+    return $FileList -split "`n" | Where-Object { $_ -match "\.ps1\|" -and $_ -notmatch "index.ps1\|" }
 }
 
 # =============================
@@ -57,7 +57,7 @@ function Build-Tree {
     param([string[]]$Files)
 
     $Tree = @{ "Folders" = @{}; "Files" = @() }
-    $AllFolders = @{}  # Stocker tous les dossiers trouvés
+    $AllFolders = @{}  # Stocker tous les dossiers détectés
 
     foreach ($Entry in $Files) {
         if ($Entry -match "(.+?)\|(.+)") {
@@ -71,8 +71,13 @@ function Build-Tree {
                 $Part = $Parts[$i]
                 $CurrentPath = ($Parts[0..$i] -join "/")
 
+                # Ajouter tous les dossiers détectés
+                if (-not $AllFolders.ContainsKey($CurrentPath)) {
+                    $AllFolders[$CurrentPath] = $null
+                }
+
                 if ($i -eq $Parts.Count - 1) {
-                    # Ajouter un fichier
+                    # Ajouter un fichier avec description
                     if (-not $Current.ContainsKey("Files")) { $Current["Files"] = @() }
                     $Current["Files"] += @{ Name = $Part; Description = $Description }
                 } else {
@@ -81,13 +86,12 @@ function Build-Tree {
                         $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() }
                     }
                     $Current = $Current["Folders"][$Part]
-                    $AllFolders[$CurrentPath] = $Current
                 }
             }
         }
     }
 
-    # Ajouter manuellement tous les dossiers à l’arborescence
+    # Vérifier que tous les dossiers de la liste existent bien dans l'arborescence
     foreach ($FolderPath in $AllFolders.Keys) {
         $Parts = $FolderPath -split "/"
         $Current = $Tree
@@ -157,11 +161,7 @@ function Browse-Folder {
             } else {
                 $FilePath = ("$Path/$($Selected.Name)").TrimStart("/")
                 Write-Host "Exécution du script : $FilePath ..."
-                try {
-                    Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$FilePath")
-                } catch {
-                    Write-Host "ERREUR : Impossible d'exécuter le script : $($_.Exception.Message)"
-                }
+                Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$FilePath")
             }
         } else {
             Write-Host "Choix invalide."
@@ -172,7 +172,7 @@ function Browse-Folder {
 # =============================
 # Démarrer la navigation
 # =============================
-Show-Logo  # 🔥 Affiche le logo une fois au début
+Show-Logo  
 $Files = Load-Files
 $Tree = Build-Tree -Files $Files
 Browse-Folder -Node $Tree
@@ -182,4 +182,5 @@ Browse-Folder -Node $Tree
 
 
 
-# 20.02.25 22.53
+
+# 20.02.25 22.59
