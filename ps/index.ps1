@@ -3,7 +3,7 @@
 # =============================
 $Owner         = "sidlaunay"
 $Repo          = "script-public"
-$Branch        = "main"
+$Branch        = "main"  # Assurez-vous que cette variable contient bien la branche cible
 $BasePath      = "ps"
 $RawBaseUrl    = "https://dev.slaunay.com/ps"
 
@@ -182,4 +182,5 @@ while ($true) {
 
 Write-Host "👋 Fin de la navigation."
 
-# 20.02.25 21.08
+
+# 20.02.25 21.12
