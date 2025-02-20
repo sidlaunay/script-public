@@ -14,23 +14,28 @@ $Headers = @{
 # =============================
 # Vérification de la connexion à l'API GitHub
 # =============================
+if (-not $Branch -or $Branch -eq "") {
+    Write-Host "❌ ERREUR : La variable `\$Branch` est vide. Vérifiez que la branche GitHub est bien définie."
+    return
+}
+
 $TreeUrl = "https://api.github.com/repos/$Owner/$Repo/git/trees/$Branch?recursive=1"
 Write-Host "🔄 Chargement de l'arborescence complète '$Owner/$Repo' (branche $Branch) ..."
-Write-Host "DEBUG: URL = $TreeUrl"
+Write-Host "DEBUG: URL API GitHub = $TreeUrl"
 
 try {
     $AllData = Invoke-RestMethod -Uri $TreeUrl -Headers $Headers
 } catch {
-    Write-Host "❌ ERREUR : Impossible de charger l'arborescence. Vérifiez :"
-    Write-Host "   - L'existence du repo '$Owner/$Repo'"
-    Write-Host "   - La branche '$Branch' (peut-être 'master' au lieu de 'main')"
-    Write-Host "   - Votre connexion Internet"
-    Write-Host "   - Si le repo est privé, utilisez un token d'authentification"
+    Write-Host "❌ ERREUR : Impossible de charger l'arborescence depuis GitHub."
+    Write-Host "   - Vérifiez l'URL GitHub : $TreeUrl"
+    Write-Host "   - Vérifiez l'existence du repo '$Owner/$Repo'"
+    Write-Host "   - Vérifiez que la branche '$Branch' existe bien"
+    Write-Host "   - Si le repo est privé, ajoutez un token d'authentification"
     return
 }
 
 if (-not $AllData.tree) {
-    Write-Host "❌ Aucune donnée 'tree' trouvée. L'arborescence est vide ou il y a une erreur."
+    Write-Host "❌ ERREUR : Aucune donnée 'tree' trouvée. L'arborescence est vide ou il y a une erreur."
     return
 }
 
