@@ -1,10 +1,12 @@
 Write-Host "=== Menu scripts PowerShell ==="
 Write-Host
 
-# Liste statique :
+# Liste statique (tu l'entretiens à la main)
 $scripts = @(
     "test1.ps1",
-    "test2.ps1"
+    "test2.ps1",
+    "monscript.sh",
+    "autre.bat"
 )
 
 for ($i = 0; $i -lt $scripts.Count; $i++) {
