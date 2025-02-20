@@ -7,18 +7,17 @@ $MainFolderPath = "ps"  # Le dossier de départ dans le repo
 $RawBaseUrl = "https://dev.slaunay.com/ps"  # L'URL reverse-proxy vers GitHub (Nginx)
 # =============================
 
-
 function Browse-GitHubDirectory {
     param(
         [string]$GithubUser,
         [string]$GithubRepo,
-        [string]$PathInRepo  # chemin relatif (ex: "ps", "ps/Administration" etc.)
+        [string]$PathInRepo  # chemin relatif (ex: "ps", "ps/administration" etc.)
     )
 
-    # Sur Windows plus ancien, forcer le protocole TLS 1.2
+    # -- Forcer le protocole TLS 1.2 pour éviter les soucis sur Windows anciens --
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    # IMPORTANT: définir un User-Agent
+    # -- Définir un User-Agent explicite pour l'API GitHub --
     $headers = @{
         "User-Agent" = "SidLaunayPowerShellScript"
     }
@@ -26,10 +25,11 @@ function Browse-GitHubDirectory {
     # 1) Construire l'URL de l'API GitHub
     $apiUrl = "https://api.github.com/repos/$GithubUser/$GithubRepo/contents/$PathInRepo"
 
-    # 2) Appeler l'API (PAS de -UseBasicParsing)
     Write-Host "`n--- Lecture du dossier '$PathInRepo' ---`n"
+    Write-Host "DEBUG: Appel API => $apiUrl"
 
     try {
+        # 2) Appeler l'API (sans -UseBasicParsing)
         $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers
     }
     catch {
@@ -37,11 +37,24 @@ function Browse-GitHubDirectory {
         return
     }
 
-    # Filtrer dossiers vs fichiers
+    # -- DEBUG : Afficher le contenu brut renvoyé par l'API --
+    Write-Host "`n=== DEBUG : Contenu brut renvoyé par l'API ==="
+    try {
+        # Convertir la réponse en JSON (si c'est un tableau d'objets) pour l'afficher joliment
+        $jsonDebug = $response | ConvertTo-Json -Depth 10
+        Write-Host $jsonDebug
+    }
+    catch {
+        Write-Host "Impossible de convertir en JSON. Réponse brute :"
+        $response | Out-Host
+    }
+    Write-Host "=============================================`n"
+
+    # 3) Filtrer dossiers vs fichiers
     $directories = $response | Where-Object { $_.type -eq 'dir' }
     $files       = $response | Where-Object { $_.type -eq 'file' }
 
-    # (Optionnel) Exclure index.ps1, index.html
+    # (Optionnel) Exclure index.ps1, index.html pour ne pas les lister
     # $files = $files | Where-Object { $_.name -notin 'index.ps1', 'index.html' }
 
     if (($directories.Count + $files.Count) -eq 0) {
@@ -49,28 +62,27 @@ function Browse-GitHubDirectory {
         return
     }
 
-    # 3) Construire un menu
+    # 4) Construire un menu (dossiers + fichiers)
     $menuItems = New-Object System.Collections.Generic.List[PSObject]
 
     # Ajouter d'abord les dossiers
     foreach ($dir in $directories) {
-        $obj = [PSCustomObject]@{
+        $menuItems.Add([PSCustomObject]@{
             Type = "dir"
             Name = $dir.name
-        }
-        $menuItems.Add($obj)
+        })
     }
 
     # Ensuite les fichiers
     foreach ($f in $files) {
-        $obj = [PSCustomObject]@{
+        $menuItems.Add([PSCustomObject]@{
             Type = "file"
             Name = $f.name
-        }
-        $menuItems.Add($obj)
+        })
     }
 
-    # Afficher le menu
+    # 5) Afficher le menu
+    Write-Host "Contenu de '$PathInRepo' :"
     for ($i = 0; $i -lt $menuItems.Count; $i++) {
         $num = $i + 1
         $type = $menuItems[$i].Type
@@ -99,19 +111,19 @@ function Browse-GitHubDirectory {
 
     $selectedItem = $menuItems[[int]$choice - 1]
 
-    # 4) Action selon le type
+    # 6) Action selon le type (dossier ou fichier)
     if ($selectedItem.Type -eq "dir") {
         # => On descend dans ce dossier
         $subFolder = "$PathInRepo/$($selectedItem.Name)"
         Browse-GitHubDirectory -GithubUser $GithubUser -GithubRepo $GithubRepo -PathInRepo $subFolder
     }
     else {
-        # => C'est un fichier: on l'exécute
+        # => C'est un fichier : on l'exécute
         $fileName = $selectedItem.Name
-        $fullPath = "$PathInRepo/$fileName"  # Ex: "ps/administration/printer.ps1"
+        $fullPath = "$PathInRepo/$fileName"  # ex: "ps/administration/printer.ps1"
         Write-Host "Chargement de $fullPath ..."
 
-        # On télécharge et exécute via l'URL (reverse-proxy)
+        # On télécharge et exécute via l'URL reverse-proxy (raw)
         iex (irm "$RawBaseUrl/$fullPath")
     }
 }
