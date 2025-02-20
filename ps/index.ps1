@@ -4,17 +4,16 @@
 $RepoBaseUrl = "https://dev.slaunay.com/ps"
 
 # =============================
-# Affichage du Logo ASCII
+# Afficher le logo ASCII (toujours visible en haut)
 # =============================
 function Show-Logo {
-    Clear-Host  # Nettoie la console avant d'afficher le logo
     Write-Host "`n"
     Write-Host "       ++************                                                                                                 "
     Write-Host "    =++++++*************                                                                                              "
     Write-Host "  =====++++++++*****+=-:::                                                                                            "
-    Write-Host " =========++++++=:::::::::-                     @@@@                                                                 "
-    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                 "
-    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                 "
+    Write-Host " =========++++++=:::::::::-                     @@@@                                                                  "
+    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                  "
+    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                  "
     Write-Host "---==============----========      @@@@@       @@@@@   @@@@@@@@@   @@@@  @@@@   @@@@@@@@@     @@@@@ @@@  @@@@    @@@@ "
     Write-Host "------=======================      @@@@@@@@    @@@@  @@@@@@@@@@@@ @@@@@  @@@@  @@@@@@@@@@@  @@@@@@@@@@@@ @@@@@  @@@@@ "
     Write-Host ":--------====================        @@@@@@@  @@@@@ @@@@@@  @@@@  @@@@@  @@@@  @@@@@ @@@@@  @@@@@  @@@@   @@@@@@@@@@  "
@@ -80,7 +79,7 @@ function Build-Tree {
 }
 
 # =============================
-# Fonction de navigation
+# Fonction de navigation (conserve le logo en haut)
 # =============================
 function Browse-Folder {
     param(
@@ -89,7 +88,8 @@ function Browse-Folder {
     )
 
     while ($true) {
-        Show-Logo  # Affiche le logo à chaque affichage du menu
+        Clear-Host  # Nettoie l'écran sauf le logo
+        Show-Logo   # Réaffiche le logo à chaque retour de menu
 
         Write-Host "`nContenu de: $Path"
         
@@ -120,8 +120,7 @@ function Browse-Folder {
         $Choice = Read-Host "`nChoisissez une option"
 
         if ($Choice -eq "Q") {
-            Show-Logo
-            Write-Host "Fermeture du programme."
+            Write-Host "`nFermeture du programme."
             exit
         } elseif ($Choice -eq "0") {
             return
@@ -148,7 +147,7 @@ function Browse-Folder {
 # =============================
 # Démarrer la navigation
 # =============================
-Show-Logo
+Show-Logo  # 🔥 Affiche le logo une fois au début
 $Files = Load-Files
 $Tree = Build-Tree -Files $Files
 Browse-Folder -Node $Tree
@@ -157,4 +156,5 @@ Browse-Folder -Node $Tree
 
 
 
-# 20.02.25 22.09
+
+# 20.02.25 22.11
