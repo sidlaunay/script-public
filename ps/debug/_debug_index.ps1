@@ -1,3 +1,6 @@
+# DESCRIPTION: Script de débogage pour afficher et tester la structure des fichiers du menu SLAUNAY
+
+
 # =============================
 # Paramètres à personnaliser
 # =============================
