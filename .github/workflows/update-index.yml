@@ -19,9 +19,16 @@ jobs:
         with:
           persist-credentials: false  # Désactive les credentials par défaut
 
-      - name: 🔄 Générer la liste des scripts PowerShell
+      - name: 🔄 Générer la liste des scripts PowerShell avec description
         run: |
-          find ps -type f -name "*.ps1" | sed 's|ps/||' > ps/index.txt
+          echo "" > ps/index.txt
+          find ps -type f -name "*.ps1" | while read script; do
+            description=$(grep -m 1 "# DESCRIPTION:" "$script" | sed 's/# DESCRIPTION: //')
+            if [ -z "$description" ]; then
+              description="Aucune description disponible"
+            fi
+            echo "$(echo "$script" | sed 's|ps/||')|$description" >> ps/index.txt
+          done
 
       - name: 💾 Commit et push des changements
         env:
