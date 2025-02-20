@@ -31,19 +31,19 @@ function Show-Logo {
 }
 
 # =============================
-# Charger les fichiers avec description et inclure tous les dossiers
+# Charger les fichiers avec description
 # =============================
 function Load-Files {
-    Write-Host "🔄 Chargement de la liste des scripts disponibles..."
+    Write-Host "Chargement de la liste des scripts disponibles..."
     try {
         $FileList = Invoke-RestMethod -Uri "$RepoBaseUrl/index.txt"
     } catch {
-        Write-Host "❌ ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
+        Write-Host "ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
         exit
     }
 
     if (-not $FileList) {
-        Write-Host "❌ Aucun script trouvé sur le serveur."
+        Write-Host "Aucun script trouvé sur le serveur."
         exit
     }
 
@@ -52,133 +52,57 @@ function Load-Files {
 }
 
 # =============================
-# Construire l'arborescence avec descriptions (Inclure TOUS les dossiers)
+# Afficher la liste des fichiers (sans arborescence)
 # =============================
-function Build-Tree {
+function Show-Files {
     param([string[]]$Files)
 
-    $Tree = @{ "Folders" = @{}; "Files" = @() }
-    $AllFolders = @{}  # Stocker tous les dossiers détectés
+    Show-Logo  # Affiche le logo en haut
+
+    Write-Host "`nListe des scripts disponibles :`n"
+
+    $ScriptList = @()
 
     foreach ($Entry in $Files) {
         if ($Entry -match "(.+?)\|(.+)") {
-            $FilePath = $matches[1]
+            $ScriptPath = $matches[1]
             $Description = $matches[2]
-
-            $Parts = $FilePath -split "/"
-            $Current = $Tree
-
-            for ($i = 0; $i -lt $Parts.Count; $i++) {
-                $Part = $Parts[$i]
-                $CurrentPath = ($Parts[0..$i] -join "/")
-
-                # 🔥 Ajouter tous les dossiers détectés
-                if (-not $AllFolders.ContainsKey($CurrentPath)) {
-                    $AllFolders[$CurrentPath] = $null
-                }
-
-                if ($i -eq $Parts.Count - 1) {
-                    # Ajouter un fichier avec description
-                    if (-not $Current.ContainsKey("Files")) { $Current["Files"] = @() }
-                    $Current["Files"] += @{ Name = $Part; Description = $Description }
-                } else {
-                    # Ajouter un dossier s'il n'existe pas
-                    if (-not $Current["Folders"].ContainsKey($Part)) {
-                        $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() }
-                    }
-                    $Current = $Current["Folders"][$Part]
-                }
-            }
+            $ScriptList += @{ Path = $ScriptPath; Description = $Description }
         }
     }
 
-    # 🔥 Vérifier que tous les dossiers détectés sont bien ajoutés
-    foreach ($FolderPath in $AllFolders.Keys) {
-        $Parts = $FolderPath -split "/"
-        $Current = $Tree
-        for ($i = 0; $i -lt $Parts.Count; $i++) {
-            $Part = $Parts[$i]
-            if (-not $Current["Folders"].ContainsKey($Part)) {
-                $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() }
-            }
-            $Current = $Current["Folders"][$Part]
-        }
+    for ($i = 0; $i -lt $ScriptList.Count; $i++) {
+        $Num = $i + 1
+        Write-Host "$Num) $($ScriptList[$i].Path) - $($ScriptList[$i].Description)"
     }
 
-    return $Tree
-}
+    Write-Host "`n0) Quitter"
 
-# =============================
-# Fonction de navigation
-# =============================
-function Browse-Folder {
-    param(
-        [Hashtable]$Node,
-        [String]$Path = ""
-    )
+    $Choice = Read-Host "`nChoisissez un script à exécuter (1-$($ScriptList.Count))"
 
-    while ($true) {
-        Show-Logo   # Affiche toujours le logo en haut du menu
+    if ($Choice -eq "0") {
+        Write-Host "`nFermeture du programme."
+        exit
+    }
 
-        Write-Host "`n📂 Contenu de: $Path"
-
-        $Items = @()
-        if ($Node.ContainsKey("Folders")) {
-            foreach ($Folder in $Node["Folders"].Keys | Sort-Object) {
-                $Items += @{ Type = "Folder"; Name = $Folder; Node = $Node["Folders"][$Folder] }
-            }
-        }
-        if ($Node.ContainsKey("Files")) {
-            foreach ($File in $Node["Files"] | Sort-Object Name) {
-                $Items += @{ Type = "File"; Name = $File.Name; Description = $File.Description }
-            }
-        }
-
-        for ($i = 0; $i -lt $Items.Count; $i++) {
-            $Num = $i + 1
-            if ($Items[$i].Type -eq "Folder") {
-                Write-Host "$Num) 📁 [Dossier] $($Items[$i].Name)"
-            } else {
-                Write-Host "$Num) 📄 $($Items[$i].Name) - $($Items[$i].Description)"
-            }
-        }
-
-        Write-Host "`n0) 🔙 Revenir en arrière"
-        Write-Host "Q) ❌ Quitter"
-
-        $Choice = Read-Host "`n📌 Choisissez une option"
-
-        if ($Choice -eq "Q") {
-            Write-Host "`n👋 Fermeture du programme."
-            exit
-        } elseif ($Choice -eq "0") {
-            return
-        } elseif ($Choice -match "^\d+$" -and [int]$Choice -gt 0 -and [int]$Choice -le $Items.Count) {
-            $Selected = $Items[[int]$Choice - 1]
-
-            if ($Selected.Type -eq "Folder") {
-                Browse-Folder -Node $Selected.Node -Path ("$Path/$($Selected.Name)").TrimStart("/")
-            } else {
-                $FilePath = ("$Path/$($Selected.Name)").TrimStart("/")
-                Write-Host "▶️ Exécution du script : $FilePath ..."
-                Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$FilePath")
-            }
-        } else {
-            Write-Host "❌ Choix invalide."
-        }
+    if ($Choice -match "^\d+$" -and [int]$Choice -gt 0 -and [int]$Choice -le $ScriptList.Count) {
+        $SelectedScript = $ScriptList[[int]$Choice - 1]
+        Write-Host "Exécution du script : $($SelectedScript.Path) ..."
+        Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$($SelectedScript.Path)")
+    } else {
+        Write-Host "Choix invalide."
     }
 }
 
 # =============================
-# Démarrer la navigation
+# Démarrer le programme
 # =============================
-Show-Logo  
 $Files = Load-Files
-$Tree = Build-Tree -Files $Files
-Browse-Folder -Node $Tree
+Show-Files -Files $Files
 
 
 
 
 
-# 20.02.25 23.11
+
+# 20.02.25 23.18
