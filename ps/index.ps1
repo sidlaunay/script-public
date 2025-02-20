@@ -7,6 +7,7 @@ $RepoBaseUrl = "https://dev.slaunay.com/ps"
 # Afficher le logo ASCII (toujours visible en haut)
 # =============================
 function Show-Logo {
+    Clear-Host
     Write-Host "`n"
     Write-Host "       ++************                                                                                                 "
     Write-Host "    =++++++*************                                                                                              "
@@ -33,16 +34,16 @@ function Show-Logo {
 # Charger les fichiers avec description et inclure tous les dossiers
 # =============================
 function Load-Files {
-    Write-Host "Chargement de la liste des scripts disponibles..."
+    Write-Host "🔄 Chargement de la liste des scripts disponibles..."
     try {
         $FileList = Invoke-RestMethod -Uri "$RepoBaseUrl/index.txt"
     } catch {
-        Write-Host "ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
+        Write-Host "❌ ERREUR : Impossible de charger la liste des scripts depuis $RepoBaseUrl/index.txt"
         exit
     }
 
     if (-not $FileList) {
-        Write-Host "Aucun script trouvé sur le serveur."
+        Write-Host "❌ Aucun script trouvé sur le serveur."
         exit
     }
 
@@ -51,7 +52,7 @@ function Load-Files {
 }
 
 # =============================
-# Construire l'arborescence avec descriptions (Inclure tous les dossiers)
+# Construire l'arborescence avec descriptions (Inclure TOUS les dossiers)
 # =============================
 function Build-Tree {
     param([string[]]$Files)
@@ -71,7 +72,7 @@ function Build-Tree {
                 $Part = $Parts[$i]
                 $CurrentPath = ($Parts[0..$i] -join "/")
 
-                # Ajouter tous les dossiers détectés
+                # 🔥 Ajouter tous les dossiers détectés
                 if (-not $AllFolders.ContainsKey($CurrentPath)) {
                     $AllFolders[$CurrentPath] = $null
                 }
@@ -91,7 +92,7 @@ function Build-Tree {
         }
     }
 
-    # Vérifier que tous les dossiers de la liste existent bien dans l'arborescence
+    # 🔥 Vérifier que tous les dossiers détectés sont bien ajoutés
     foreach ($FolderPath in $AllFolders.Keys) {
         $Parts = $FolderPath -split "/"
         $Current = $Tree
@@ -117,10 +118,9 @@ function Browse-Folder {
     )
 
     while ($true) {
-        Clear-Host  # Nettoie la console avant d'afficher le logo
         Show-Logo   # Affiche toujours le logo en haut du menu
 
-        Write-Host "`nContenu de: $Path"
+        Write-Host "`n📂 Contenu de: $Path"
 
         $Items = @()
         if ($Node.ContainsKey("Folders")) {
@@ -137,19 +137,19 @@ function Browse-Folder {
         for ($i = 0; $i -lt $Items.Count; $i++) {
             $Num = $i + 1
             if ($Items[$i].Type -eq "Folder") {
-                Write-Host "$Num) [Dossier] $($Items[$i].Name)"
+                Write-Host "$Num) 📁 [Dossier] $($Items[$i].Name)"
             } else {
-                Write-Host "$Num) $($Items[$i].Name) - $($Items[$i].Description)"
+                Write-Host "$Num) 📄 $($Items[$i].Name) - $($Items[$i].Description)"
             }
         }
 
-        Write-Host "`n0) Revenir en arrière"
-        Write-Host "Q) Quitter"
+        Write-Host "`n0) 🔙 Revenir en arrière"
+        Write-Host "Q) ❌ Quitter"
 
-        $Choice = Read-Host "`nChoisissez une option"
+        $Choice = Read-Host "`n📌 Choisissez une option"
 
         if ($Choice -eq "Q") {
-            Write-Host "`nFermeture du programme."
+            Write-Host "`n👋 Fermeture du programme."
             exit
         } elseif ($Choice -eq "0") {
             return
@@ -160,11 +160,11 @@ function Browse-Folder {
                 Browse-Folder -Node $Selected.Node -Path ("$Path/$($Selected.Name)").TrimStart("/")
             } else {
                 $FilePath = ("$Path/$($Selected.Name)").TrimStart("/")
-                Write-Host "Exécution du script : $FilePath ..."
+                Write-Host "▶️ Exécution du script : $FilePath ..."
                 Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$FilePath")
             }
         } else {
-            Write-Host "Choix invalide."
+            Write-Host "❌ Choix invalide."
         }
     }
 }
@@ -181,6 +181,4 @@ Browse-Folder -Node $Tree
 
 
 
-
-
-# 20.02.25 22.59
+# 20.02.25 23.11
