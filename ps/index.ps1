@@ -11,9 +11,9 @@ function Show-Logo {
     Write-Host "       ++************                                                                                                 "
     Write-Host "    =++++++*************                                                                                              "
     Write-Host "  =====++++++++*****+=-:::                                                                                            "
-    Write-Host " =========++++++=:::::::::-                     @@@@                                                                  "
-    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                  "
-    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                  "
+    Write-Host " =========++++++=:::::::::-                     @@@@                                                                 "
+    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                 "
+    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                 "
     Write-Host "---==============----========      @@@@@       @@@@@   @@@@@@@@@   @@@@  @@@@   @@@@@@@@@     @@@@@ @@@  @@@@    @@@@ "
     Write-Host "------=======================      @@@@@@@@    @@@@  @@@@@@@@@@@@ @@@@@  @@@@  @@@@@@@@@@@  @@@@@@@@@@@@ @@@@@  @@@@@ "
     Write-Host ":--------====================        @@@@@@@  @@@@@ @@@@@@  @@@@  @@@@@  @@@@  @@@@@ @@@@@  @@@@@  @@@@   @@@@@@@@@@  "
@@ -56,7 +56,7 @@ function Load-Files {
 function Build-Tree {
     param([string[]]$Files)
 
-    $Tree = @{}
+    $Tree = @{ "Folders" = @{}; "Files" = @() }
 
     foreach ($Entry in $Files) {
         if ($Entry -match "(.+?)\|(.+)") {
@@ -73,8 +73,7 @@ function Build-Tree {
                     if (-not $Current.ContainsKey("Files")) { $Current["Files"] = @() }
                     $Current["Files"] += @{ Name = $Part; Description = $Description }
                 } else {
-                    if (-not $Current.ContainsKey("Folders")) { $Current["Folders"] = @{} }
-                    if (-not $Current["Folders"].ContainsKey($Part)) { $Current["Folders"][$Part] = @{} }
+                    if (-not $Current["Folders"].ContainsKey($Part)) { $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() } }
                     $Current = $Current["Folders"][$Part]
                 }
             }
@@ -101,12 +100,12 @@ function Browse-Folder {
 
         $Items = @()
         if ($Node.ContainsKey("Folders")) {
-            foreach ($Folder in $Node["Folders"].Keys) {
+            foreach ($Folder in $Node["Folders"].Keys | Sort-Object) {
                 $Items += @{ Type = "Folder"; Name = $Folder; Node = $Node["Folders"][$Folder] }
             }
         }
         if ($Node.ContainsKey("Files")) {
-            foreach ($File in $Node["Files"]) {
+            foreach ($File in $Node["Files"] | Sort-Object Name) {
                 $Items += @{ Type = "File"; Name = $File.Name; Description = $File.Description }
             }
         }
@@ -165,4 +164,5 @@ Browse-Folder -Node $Tree
 
 
 
-# 20.02.25 22.27
+
+# 20.02.25 22.32
