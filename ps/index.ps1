@@ -5,7 +5,8 @@ $Owner         = "sidlaunay"
 $Repo          = "script-public"
 $Branch        = "main"
 $BasePath      = "ps"
-$RawBaseUrl    = "https://dev.slaunay.com/ps"   # Reverse Proxy vers GitHub
+$RawBaseUrl    = "https://dev.slaunay.com/ps"
+
 $Headers = @{
     "User-Agent" = "SidLaunayPowerShellScript-TREE"
 }
@@ -13,9 +14,8 @@ $Headers = @{
 # =============================
 # Vérification de la connexion à GitHub API
 # =============================
-Write-Host "🔄 Chargement de l'arborescence complète '$Owner/$Repo' (branche $Branch) ..."
-
 $TreeUrl = "https://api.github.com/repos/$Owner/$Repo/git/trees/$Branch?recursive=1"
+Write-Host "🔄 Chargement de l'arborescence complète '$Owner/$Repo' (branche $Branch) ..."
 Write-Host "DEBUG: URL = $TreeUrl"
 
 try {
