@@ -11,10 +11,10 @@ function Browse-GitHubDirectory {
     param(
         [string]$GithubUser,
         [string]$GithubRepo,
-        [string]$PathInRepo  # chemin relatif (ex: "ps", "ps/administration" etc.)
+        [string]$PathInRepo  # chemin relatif (ex: "ps", "ps/administration", etc.)
     )
 
-    # -- Forcer le protocole TLS 1.2 pour éviter les soucis sur Windows anciens --
+    # -- Forcer le protocole TLS 1.2 sur PowerShell 5.x si besoin --
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
     # -- Définir un User-Agent explicite pour l'API GitHub --
@@ -40,7 +40,6 @@ function Browse-GitHubDirectory {
     # -- DEBUG : Afficher le contenu brut renvoyé par l'API --
     Write-Host "`n=== DEBUG : Contenu brut renvoyé par l'API ==="
     try {
-        # Convertir la réponse en JSON (si c'est un tableau d'objets) pour l'afficher joliment
         $jsonDebug = $response | ConvertTo-Json -Depth 10
         Write-Host $jsonDebug
     }
@@ -50,11 +49,16 @@ function Browse-GitHubDirectory {
     }
     Write-Host "=============================================`n"
 
+    # 2.5) Si l'API retourne un seul objet au lieu d'un tableau, on le force en tableau
+    if ($null -ne $response -and -not ($response -is [System.Collections.IEnumerable])) {
+        $response = ,$response
+    }
+
     # 3) Filtrer dossiers vs fichiers
     $directories = $response | Where-Object { $_.type -eq 'dir' }
     $files       = $response | Where-Object { $_.type -eq 'file' }
 
-    # (Optionnel) Exclure index.ps1, index.html pour ne pas les lister
+    # (Optionnel) Exclure index.ps1, index.html, etc.
     # $files = $files | Where-Object { $_.name -notin 'index.ps1', 'index.html' }
 
     if (($directories.Count + $files.Count) -eq 0) {
@@ -84,7 +88,7 @@ function Browse-GitHubDirectory {
     # 5) Afficher le menu
     Write-Host "Contenu de '$PathInRepo' :"
     for ($i = 0; $i -lt $menuItems.Count; $i++) {
-        $num = $i + 1
+        $num  = $i + 1
         $type = $menuItems[$i].Type
         $name = $menuItems[$i].Name
 
