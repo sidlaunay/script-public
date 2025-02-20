@@ -11,9 +11,9 @@ function Show-Logo {
     Write-Host "       ++************                                                                                                 "
     Write-Host "    =++++++*************                                                                                              "
     Write-Host "  =====++++++++*****+=-:::                                                                                            "
-    Write-Host " =========++++++=:::::::::-                     @@@@                                                                  "
-    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                  "
-    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                  "
+    Write-Host " =========++++++=:::::::::-                     @@@@                                                                 "
+    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                 "
+    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                 "
     Write-Host "---==============----========      @@@@@       @@@@@   @@@@@@@@@   @@@@  @@@@   @@@@@@@@@     @@@@@ @@@  @@@@    @@@@ "
     Write-Host "------=======================      @@@@@@@@    @@@@  @@@@@@@@@@@@ @@@@@  @@@@  @@@@@@@@@@@  @@@@@@@@@@@@ @@@@@  @@@@@ "
     Write-Host ":--------====================        @@@@@@@  @@@@@ @@@@@@  @@@@  @@@@@  @@@@  @@@@@ @@@@@  @@@@@  @@@@   @@@@@@@@@@  "
@@ -46,8 +46,8 @@ function Load-Files {
         exit
     }
 
-    # Supprimer index.ps1 de la liste
-    return $FileList -split "`n" | Where-Object { $_ -match "\.ps1\|" -and $_ -notmatch "index.ps1\|" }
+    # Supprimer index.ps1 et index.txt de la liste
+    return $FileList -split "`n" | Where-Object { $_ -match "\.ps1\|" -and $_ -notmatch "index.ps1\|" -and $_ -notmatch "index.txt\|" }
 }
 
 # =============================
@@ -73,7 +73,9 @@ function Build-Tree {
                     if (-not $Current.ContainsKey("Files")) { $Current["Files"] = @() }
                     $Current["Files"] += @{ Name = $Part; Description = $Description }
                 } else {
-                    if (-not $Current["Folders"].ContainsKey($Part)) { $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() } }
+                    if (-not $Current["Folders"].ContainsKey($Part)) { 
+                        $Current["Folders"][$Part] = @{ "Folders" = @{}; "Files" = @() } 
+                    }
                     $Current = $Current["Folders"][$Part]
                 }
             }
@@ -165,4 +167,4 @@ Browse-Folder -Node $Tree
 
 
 
-# 20.02.25 22.32
+# 20.02.25 22.38
