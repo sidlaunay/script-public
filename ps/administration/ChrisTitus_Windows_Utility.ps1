@@ -13,6 +13,10 @@ if (-Not $isAdmin) {
     Exit
 }
 
-# Exécution du script Chris Titus en mode administrateur
+# Téléchargement et exécution du script Chris Titus
 Write-Host "Téléchargement et exécution du script The Ultimate Windows Utility..." -ForegroundColor Cyan
-Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"iwr -useb https://christitus.com/win | iex`"" -Verb RunAs
+iwr -useb https://christitus.com/win | iex
+
+# Empêcher la fermeture immédiate de PowerShell
+Write-Host "`nExécution terminée. Appuyez sur une touche pour fermer..." -ForegroundColor Green
+Read-Host "Appuyez sur Entrée pour quitter"
