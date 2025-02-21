@@ -1,4 +1,4 @@
-# DESCRIPTION:The Ultimate Windows Utility - Clean up Windows 10 PowerShell Script
+# DESCRIPTION: The Ultimate Windows Utility - Clean up Windows 10 PowerShell Script
 # Ce script demande l'élévation de privilèges avant d'exécuter le script de Chris Titus.
 
 # Vérifie si le script est exécuté en mode administrateur
