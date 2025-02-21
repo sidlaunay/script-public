@@ -3,6 +3,7 @@ index.ps1|Aucune description disponible
 activation/mas.ps1|Windows Office activator
 debug/debug_index.ps1|Script de débogage pour afficher et tester la structure des fichiers du menu SLAUNAY
 administration/printer.ps1|Ouvre l'ancien menu des imprimantes et scanners du Panneau de configuration
+administration/ChrisTitus_Windows_Utility.ps1|# DESCRIPTION:The Ultimate Windows Utility - Clean up Windows 10 PowerShell Script
 administration/desactiver_defender.ps1|Script PowerShell pour désactiver Windows Defender
 administration/activer_defender.ps1|Script PowerShell pour réactiver Windows Defender
 test/test.ps1|Aucune description disponible
