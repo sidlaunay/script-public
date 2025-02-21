@@ -15,21 +15,20 @@ $RepoBaseUrl = "https://dev.slaunay.com/ps"
 function Show-Logo {
     Clear-Host
     Write-Host "`n"
-    Write-Host "       ++************                                                                                                 "
-    Write-Host "    =++++++*************                                                                                              "
-    Write-Host "  =====++++++++*****+=-:::                                                                                            "
-    Write-Host " =========++++++=:::::::::-                     @@@@                                                                 "
-    Write-Host "=============++-::::::------        @@@@@@@@@  @@@@@                                                                 "
-    Write-Host "===============-::-------===       @@@@@@@@@   @@@@@                                                                 "
-    Write-Host "---==============----========      @@@@@       @@@@@   @@@@@@@@@   @@@@  @@@@   @@@@@@@@@     @@@@@ @@@  @@@@    @@@@ "
-    Write-Host "------=======================      @@@@@@@@    @@@@  @@@@@@@@@@@@ @@@@@  @@@@  @@@@@@@@@@@  @@@@@@@@@@@@ @@@@@  @@@@@ "
-    Write-Host ":--------====================        @@@@@@@  @@@@@ @@@@@@  @@@@  @@@@@  @@@@  @@@@@ @@@@@  @@@@@  @@@@   @@@@@@@@@@  "
-    Write-Host ":::::--------============+++       @@   @@@@  @@@@@ @@@@@   @@@@  @@@@@  @@@@  @@@@  @@@@@ @@@@@   @@@@    @@@@@@@@   "
-    Write-Host "::::::::--------=======+++++     @@@@@@@@@@@  @@@@@  @@@@@@@@@@@  @@@@@@@@@@@  @@@@  @@@@@  @@@@@@@@@@@    @@@@@@@    "
-    Write-Host " ::::::::::--------==+++***       @@@@@@@@@   @@@@    @@@@@@@@@@   @@@@@@@@@   @@@@  @@@@    @@@@@@@@@     @@@@@@     "
-    Write-Host "  ::::::::::::-----=******                                                                                @@@@@       "
-    Write-Host "    ::::::::::::-=******                                                                                 @@@@@        "
-    Write-Host "       :::::::-+*****                                                                                    @@@@         "
+    Write-Host "       -=%##@%#**++@                                                                                         "
+    Write-Host "      *@@@@@@@@@@@@@@@                                                                                       "
+    Write-Host "   .@@@@@@@@@@@@@@@                                                                                          "
+    Write-Host "   @@@@@@@@@@@@     :%@                     @@@@                                                             "
+    Write-Host " #@@@@@@@@@@@@  @@@@@@@@         @@@@@@@@@  @@@@                                                             "
+    Write-Host " @@@@@@@@@@@@@   :*@@@@@@       @@@@@@@@@   @@@@                                                             "
+    Write-Host " @@@@@@@@@@@@@@@@@*::#%@@%      @@@@@@@     @@@@  @@@@@@@@@@  @@@@  @@@@  @@@@@@@@@    @@@@@@@@@ @@@@@   @@@@"
+    Write-Host " @@@@@@@@@@@@@@@@@@@@@@@@+       @@@@@@@@  @@@@  @@@@@@@@@@@  @@@@  @@@@  @@@@@@@@@@  @@@@@@@@@@  @@@@@ @@@@@"
+    Write-Host " @@@@@@@@@@@@@@@@@@@@+%@%           @@@@@  @@@@  @@@@   @@@@  @@@@  @@@@ @@@@@ @@@@@ @@@@   @@@@   @@@@@@@@@ "
+    Write-Host " @@@@@@@@@@@@@@@@@@= .@@%       @@@@@@@@@  @@@@  @@@@@ @@@@@  @@@@@@@@@  @@@@  @@@@@ @@@@@@@@@@@    @@@@@@   "
+    Write-Host "   @@@@@@@@@@@@@@=  @@@%=       @@@@@@@@   @@@@   @@@@@@@@@    @@@@@@@   @@@@  @@@@   @@@@@@@@@@     @@@@    "
+    Write-Host "    @@@@@@@@@@@   @@@@@@                                                                           @@@@@     "
+    Write-Host "     :@%@@@@#   @@@@@@                                                                            @@@@@      "
+    Write-Host "              @@@@%@                                                                             @@@@        "
     Write-Host "`n"
     Write-Host "========================================"
     Write-Host "         MENU SLAUNAY SCRIPT            "
@@ -62,9 +61,6 @@ function Build-Tree {
     param([string[]]$Files)
 
     $Tree = @{ "Folders" = @{}; "Files" = @() }
-    $AllFolders = @{}
-
-    # Première passe: traiter les fichiers et collecter les dossiers
     foreach ($Entry in $Files) {
         if ($Entry -match "^([^\|]+\.ps1)\|(.+)") {
             $FilePath = $matches[1]
@@ -73,7 +69,6 @@ function Build-Tree {
             $Parts = $FilePath -split "/"
             $Current = $Tree
 
-            # Ajouter chaque segment du chemin
             for ($i = 0; $i -lt $Parts.Count; $i++) {
                 $Part = $Parts[$i]
                 if ($i -eq $Parts.Count - 1) {
@@ -85,20 +80,6 @@ function Build-Tree {
                     }
                     $Current = $Current["Folders"][$Part]
                 }
-            }
-        }
-    }
-
-    # Deuxième passe: ajouter les dossiers manquants
-    $Files | ForEach-Object {
-        if ($_ -match "^([^\|]+)/") {
-            $dirPath = $matches[1] -split "/" | Where-Object { $_ -ne "" }
-            $current = $Tree
-            foreach ($dir in $dirPath) {
-                if (-not $current["Folders"].ContainsKey($dir)) {
-                    $current["Folders"][$dir] = @{ "Folders" = @{}; "Files" = @() }
-                }
-                $current = $current["Folders"][$dir]
             }
         }
     }
@@ -118,7 +99,7 @@ function Browse-Folder {
     while ($true) {
         Show-Logo
 
-        Write-Host "`n📂 Contenu de: $Path"
+        Write-Host "`nContenu de: $Path"
 
         $Items = @()
         if ($Node.Folders.Count -gt 0) {
@@ -143,20 +124,20 @@ function Browse-Folder {
         for ($i = 0; $i -lt $Items.Count; $i++) {
             $Num = $i + 1
             if ($Items[$i].Type -eq "Folder") {
-                Write-Host "$Num) 📁 [Dossier] $($Items[$i].Name)"
+                Write-Host "$Num) [Dossier] $($Items[$i].Name)"
             }
             else {
-                Write-Host "$Num) 📄 $($Items[$i].Name) - $($Items[$i].Description)"
+                Write-Host "$Num) $($Items[$i].Name) - $($Items[$i].Description)"
             }
         }
 
-        Write-Host "`n0) 🔙 Revenir en arrière"
-        Write-Host "Q) ❌ Quitter"
+        Write-Host "`n0) Revenir en arrière"
+        Write-Host "Q) Quitter"
 
-        $Choice = Read-Host "`n📌 Choisissez une option"
+        $Choice = Read-Host "`nChoisissez une option"
 
         if ($Choice -eq "Q") {
-            Write-Host "`n👋 Fermeture du programme."
+            Write-Host "`nFermeture du programme."
             exit
         }
         elseif ($Choice -eq "0") {
@@ -170,9 +151,9 @@ function Browse-Folder {
             }
             else {
                 $FilePath = "$Path/$($Selected.Name)".Trim('/')
-                Write-Host "▶️ Exécution du script : $FilePath ..."
+                Write-Host "▶️ Exécution du script dans une nouvelle fenêtre : $FilePath ..."
                 try {
-                    Invoke-Expression (Invoke-RestMethod -Uri "$RepoBaseUrl/$FilePath")
+                    Start-Process powershell.exe -ArgumentList "-NoExit", "-Command irm $RepoBaseUrl/$FilePath | iex"
                 }
                 catch {
                     Write-Host "❌ Erreur lors de l'exécution du script : $_"
@@ -197,4 +178,4 @@ Browse-Folder -Node $Tree
 
 
 
-# 21.02.25 00.33
+# 21.02.25 08.33
