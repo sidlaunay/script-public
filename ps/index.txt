@@ -10,4 +10,5 @@ test/test.ps1|Aucune description disponible
 reseau/Infos_Reseau.ps1|Affiche les informations réseau de la machine, y compris IP, DNS et passerelle.
 reseau/Test_Port_Ouvert.ps1|Vérifie si un port donné est ouvert sur un serveur distant.
 reseau/Test_Connectivite_Reseau.ps1|Teste la connexion réseau vers une IP spécifique avec des détails sur la latence et la connectivité.
+reseau/Speedtest.ps1|Aucune description disponible
 reseau/Liste_Connexions_TCP.ps1|Affiche toutes les connexions TCP actives et leur état (équivalent de 'netstat').
