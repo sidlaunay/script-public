@@ -14,5 +14,5 @@ if (-Not $isAdmin) {
 }
 
 # Exécute directement le script en mode administrateur
-Write-Host "Téléchargement et exécution du script The Ultimate Windows Utility..." -ForegroundColor Cyan
+Write-Host "Téléchargement et exécution du script massgrave.dev ..." -ForegroundColor Cyan
 irm https://get.activated.win | iex
