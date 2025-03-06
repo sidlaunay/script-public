@@ -1,14 +1,15 @@
 
-index.ps1|Aucune description disponible
 activation/mas.ps1|Windows Office activator
 debug/debug_index.ps1|Script de débogage pour afficher et tester la structure des fichiers du menu SLAUNAY
-administration/printer.ps1|Ouvre l'ancien menu des imprimantes et scanners du Panneau de configuration
-administration/ChrisTitus_Windows_Utility.ps1|The Ultimate Windows Utility - Clean up Windows 10 PowerShell Script
-administration/desactiver_defender.ps1|Script PowerShell pour désactiver Windows Defender
-administration/activer_defender.ps1|Script PowerShell pour réactiver Windows Defender
 test/test.ps1|Aucune description disponible
+index.ps1|Aucune description disponible
+administration/ChrisTitus_Windows_Utility.ps1|The Ultimate Windows Utility - Clean up Windows 10 PowerShell Script
+administration/activer_defender.ps1|Script PowerShell pour réactiver Windows Defender
+administration/printer.ps1|Ouvre l'ancien menu des imprimantes et scanners du Panneau de configuration
+administration/desactiver_defender.ps1|Script PowerShell pour désactiver Windows Defender
 reseau/Infos_Reseau.ps1|Affiche les informations réseau de la machine, y compris IP, DNS et passerelle.
+reseau/TCPview.ps1|TCPView.exe
 reseau/Test_Port_Ouvert.ps1|Vérifie si un port donné est ouvert sur un serveur distant.
-reseau/Test_Connectivite_Reseau.ps1|Teste la connexion réseau vers une IP spécifique avec des détails sur la latence et la connectivité.
 reseau/Speedtest.ps1|Aucune description disponible
+reseau/Test_Connectivite_Reseau.ps1|Teste la connexion réseau vers une IP spécifique avec des détails sur la latence et la connectivité.
 reseau/Liste_Connexions_TCP.ps1|Affiche toutes les connexions TCP actives et leur état (équivalent de 'netstat').
