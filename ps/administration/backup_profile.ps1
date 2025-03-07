@@ -1,4 +1,9 @@
-# DESCRIPTION: Sauvegarde un profil utilisateur en créant une image VHD avec Disk2VHD.
+# DESCRIPTION: Sauvegarde un profil utilisateur sous forme d'image WIM avec DISM.
+
+# Empêcher la fermeture brutale de la console et enregistrer un log
+$ErrorActionPreference = "Continue"
+$Host.UI.RawUI.WindowTitle = "Sauvegarde Profil - Ne Fermez Pas"
+Start-Transcript -Path "$env:TEMP\backup_log.txt" -Append
 
 # Vérifier si PowerShell est en mode administrateur
 function Test-Admin {
@@ -14,14 +19,6 @@ if (-not (Test-Admin)) {
 }
 
 try {
-    # Télécharger Disk2VHD si nécessaire
-    $disk2vhd_url = "https://live.sysinternals.com/disk2vhd64.exe"
-    $disk2vhd_path = "$env:TEMP\disk2vhd64.exe"
-    if (-not (Test-Path -Path $disk2vhd_path)) {
-        Write-Host "🔄 Téléchargement de Disk2VHD..."
-        Invoke-WebRequest -Uri $disk2vhd_url -OutFile $disk2vhd_path -ErrorAction Stop
-    }
-
     # Lister les profils utilisateur
     $userProfiles = Get-ChildItem -Path "C:\Users" -Directory | Select-Object -ExpandProperty Name
     if ($userProfiles.Count -eq 0) {
@@ -43,34 +40,36 @@ try {
     $selectedProfile = $userProfiles[[int]$choice - 1]
     $profilePath = "C:\Users\$selectedProfile"
 
-    # Demander la destination pour le fichier VHD
-    $destinationFolder = Read-Host "📁 Entrez le chemin de destination pour l'image disque (ex: D:\Backups ou \\SERVEUR\Sauvegardes)"
+    # Demander la destination pour le fichier WIM
+    $destinationFolder = Read-Host "📁 Entrez le chemin de destination pour l'image (ex: D:\Backups ou \\SERVEUR\Sauvegardes)"
     if (-not (Test-Path -Path $destinationFolder)) {
         Write-Host "❌ Le dossier de destination n'existe pas."
         exit
     }
 
-    # Demander le nom du fichier VHD
-    $vhdFileName = Read-Host "📌 Entrez le nom du fichier disque virtuel (ex: sauvegarde_$selectedProfile)"
-    $vhdPath = "$destinationFolder\$vhdFileName.vhd"
+    # Demander le nom du fichier WIM
+    $wimFileName = Read-Host "📌 Entrez le nom du fichier image (ex: sauvegarde_$selectedProfile)"
+    $wimPath = "$destinationFolder\$wimFileName.wim"
 
     # Vérifier si le fichier existe déjà
-    if (Test-Path -Path $vhdPath) {
+    if (Test-Path -Path $wimPath) {
         $overwrite = Read-Host "⚠️ Le fichier existe déjà. Voulez-vous l'écraser ? (O/N)"
         if ($overwrite -ne "O") {
             Write-Host "❌ Opération annulée."
             exit
         }
-        Remove-Item -Path $vhdPath -Force
+        Remove-Item -Path $wimPath -Force
     }
 
-    # Lancer la création du VHD avec exclusion des autres utilisateurs
-    Write-Host "⏳ Création de l'image disque VHD..."
-    Start-Process -FilePath $disk2vhd_path -ArgumentList "C: $vhdPath" -Wait -NoNewWindow
+    # Créer l'image avec DISM
+    Write-Host "⏳ Création de l'image WIM..."
+    $dismCommand = "dism /Capture-Image /ImageFile:`"$wimPath`" /CaptureDir:`"$profilePath`" /Name:`"$selectedProfile`""
+    Write-Host "📌 Commande exécutée : $dismCommand"
+    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $dismCommand" -Wait -NoNewWindow
 
     # Vérification et confirmation
-    if (Test-Path -Path $vhdPath) {
-        Write-Host "✅ Sauvegarde terminée avec succès ! Fichier créé : $vhdPath"
+    if (Test-Path -Path $wimPath) {
+        Write-Host "✅ Sauvegarde terminée avec succès ! Fichier créé : $wimPath"
     } else {
         Write-Host "❌ Erreur lors de la sauvegarde."
     }
@@ -79,5 +78,8 @@ try {
     Write-Host "⚠️ Une erreur s'est produite : $_"
 }
 
-# Garder PowerShell ouvert pour afficher les erreurs
-Read-Host "Appuyez sur Entrée pour fermer la fenêtre..."
+# Empêcher la fermeture automatique et afficher le log en cas d'erreur
+Write-Host "`n⚠️ Une erreur s'est produite ? Consultez le log ici : $env:TEMP\backup_log.txt"
+Write-Host "Appuyez sur Entrée pour fermer la fenêtre..."
+Read-Host
+Stop-Transcript
