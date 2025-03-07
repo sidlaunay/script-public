@@ -77,6 +77,7 @@ administration/ChrisTitus_Windows_Utility.ps1|The Ultimate Windows Utility - Cle
 administration/activer_defender.ps1|Script PowerShell pour réactiver Windows Defender
 administration/printer.ps1|Ouvre l'ancien menu des imprimantes et scanners du Panneau de configuration
 administration/desactiver_defender.ps1|Script PowerShell pour désactiver Windows Defender
+administration/7zip_wim.ps1|Télécharge et lance 7-Zip Portable pour explorer un fichier .WIM.
 reseau/Infos_Reseau.ps1|Affiche les informations réseau de la machine, y compris IP, DNS et passerelle.
 reseau/TCPview.ps1|TCPView.exe
 reseau/Test_Port_Ouvert.ps1|Vérifie si un port donné est ouvert sur un serveur distant.
