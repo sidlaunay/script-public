@@ -1,4 +1,4 @@
-# DESCRIPTION: Sauvegarde un profil utilisateur en ZIP, compatible avec les dossiers locaux et réseau.
+# DESCRIPTION: Sauvegarde un profil utilisateur en créant un fichier disque virtuel (.VHD)
 
 # Vérifier si PowerShell est en mode administrateur
 function Test-Admin {
@@ -7,76 +7,61 @@ function Test-Admin {
     return $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-# Redémarrer en mode administrateur si nécessaire
 if (-not (Test-Admin)) {
     Write-Host "🔄 Redémarrage du script en mode administrateur..."
     Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
     exit
 }
 
-try {
-    # Lister les profils utilisateur
-    $userProfiles = Get-ChildItem -Path "C:\Users" -Directory | Select-Object -ExpandProperty Name
-    if ($userProfiles.Count -eq 0) {
-        Write-Host "❌ Aucun profil utilisateur trouvé dans C:\Users"
-        exit
-    }
+# Télécharger disk2vhd.exe si nécessaire
+$disk2vhd_url = "https://live.sysinternals.com/disk2vhd64.exe"
+$disk2vhd_path = "$env:TEMP\disk2vhd64.exe"
+if (-not (Test-Path -Path $disk2vhd_path)) {
+    Write-Host "🔄 Téléchargement de Disk2VHD..."
+    Invoke-WebRequest -Uri $disk2vhd_url -OutFile $disk2vhd_path
+}
 
-    # Afficher la liste des profils et demander à l'utilisateur d'en choisir un
-    Write-Host "📂 Profils utilisateurs trouvés dans C:\Users :"
-    for ($i = 0; $i -lt $userProfiles.Count; $i++) {
-        Write-Host "$($i+1)) $($userProfiles[$i])"
-    }
+# Lister les profils utilisateur
+$userProfiles = Get-ChildItem -Path "C:\Users" -Directory | Select-Object -ExpandProperty Name
+if ($userProfiles.Count -eq 0) {
+    Write-Host "❌ Aucun profil utilisateur trouvé dans C:\Users"
+    exit
+}
 
-    $choice = Read-Host "🔍 Entrez le numéro du profil à sauvegarder"
-    if (-not ($choice -match "^\d+$") -or [int]$choice -lt 1 -or [int]$choice -gt $userProfiles.Count) {
-        Write-Host "❌ Sélection invalide."
-        exit
-    }
-    $selectedProfile = $userProfiles[[int]$choice - 1]
-    $profilePath = "C:\Users\$selectedProfile"
+# Afficher la liste des profils et demander à l'utilisateur d'en choisir un
+Write-Host "📂 Profils utilisateurs trouvés dans C:\Users :"
+for ($i = 0; $i -lt $userProfiles.Count; $i++) {
+    Write-Host "$($i+1)) $($userProfiles[$i])"
+}
 
-    # Demander la destination du fichier ZIP
-    $destinationFolder = Read-Host "📁 Entrez le chemin de destination (ex: D:\Backups ou \\SERVEUR\Sauvegardes)"
-    
-    # Vérifier si c'est un dossier réseau
-    if ($destinationFolder -match "^\\\\") {
-        Write-Host "🔍 Vérification du dossier réseau..."
-        if (-not (Test-Path -Path $destinationFolder)) {
-            Write-Host "⚠️ Le dossier réseau n'est pas accessible ! Vérifiez votre connexion."
-            exit
-        }
-    } elseif (-not (Test-Path -Path $destinationFolder)) {
-        Write-Host "❌ Le dossier de destination n'existe pas. Vérifiez votre saisie."
-        exit
-    }
+$choice = Read-Host "🔍 Entrez le numéro du profil à sauvegarder"
+if (-not ($choice -match "^\d+$") -or [int]$choice -lt 1 -or [int]$choice -gt $userProfiles.Count) {
+    Write-Host "❌ Sélection invalide."
+    exit
+}
+$selectedProfile = $userProfiles[[int]$choice - 1]
+$profilePath = "C:\Users\$selectedProfile"
 
-    # Demander le nom du fichier ZIP
-    $zipFileName = Read-Host "📌 Entrez le nom du fichier ZIP (ex: sauvegarde_$selectedProfile)"
-    $zipPath = "$destinationFolder\$zipFileName.zip"
+# Demander la destination pour le fichier VHD
+$destinationFolder = Read-Host "📁 Entrez le chemin de destination pour l'image disque (ex: D:\Backups ou \\SERVEUR\Sauvegardes)"
+if (-not (Test-Path -Path $destinationFolder)) {
+    Write-Host "❌ Le dossier de destination n'existe pas."
+    exit
+}
 
-    # Vérifier si le fichier existe déjà
-    if (Test-Path -Path $zipPath) {
-        $overwrite = Read-Host "⚠️ Le fichier existe déjà. Voulez-vous l'écraser ? (O/N)"
-        if ($overwrite -ne "O") {
-            Write-Host "❌ Opération annulée."
-            exit
-        }
-        Remove-Item -Path $zipPath -Force
-    }
+# Demander le nom du fichier VHD
+$vhdFileName = Read-Host "📌 Entrez le nom du fichier disque virtuel (ex: sauvegarde_$selectedProfile)"
+$vhdPath = "$destinationFolder\$vhdFileName.vhd"
 
-    # Création de l'archive ZIP
-    Write-Host "⏳ Compression du profil $selectedProfile en $zipPath..."
-    Compress-Archive -Path "$profilePath\*" -DestinationPath $zipPath -Force
+# Lancer la création du VHD
+Write-Host "⏳ Création de l'image disque VHD..."
+Start-Process -FilePath $disk2vhd_path -ArgumentList "$profilePath $vhdPath" -Wait -NoNewWindow
 
-    # Vérification et confirmation
-    if (Test-Path -Path $zipPath) {
-        Write-Host "✅ Sauvegarde terminée avec succès ! Fichier créé : $zipPath"
-    } else {
-        Write-Host "❌ Erreur lors de la sauvegarde."
-    }
-} catch {
-    Write-Host "⚠️ Une erreur s'est produite : $_"
+# Vérification et confirmation
+if (Test-Path -Path $vhdPath) {
+    Write-Host "✅ Sauvegarde terminée avec succès ! Fichier créé : $vhdPath"
+} else {
+    Write-Host "❌ Erreur lors de la sauvegarde."
 }
 
 # Garder PowerShell ouvert pour afficher les erreurs
