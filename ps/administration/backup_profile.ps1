@@ -1,4 +1,4 @@
-# DESCRIPTION: Sauvegarde un profil utilisateur en créant un fichier disque virtuel (.VHD)
+# DESCRIPTION: Sauvegarde un profil utilisateur en créant un fichier VHD en montant le dossier comme un lecteur virtuel.
 
 # Vérifier si PowerShell est en mode administrateur
 function Test-Admin {
@@ -13,7 +13,7 @@ if (-not (Test-Admin)) {
     exit
 }
 
-# Télécharger disk2vhd.exe si nécessaire
+# Télécharger Disk2VHD si nécessaire
 $disk2vhd_url = "https://live.sysinternals.com/disk2vhd64.exe"
 $disk2vhd_path = "$env:TEMP\disk2vhd64.exe"
 if (-not (Test-Path -Path $disk2vhd_path)) {
@@ -53,9 +53,23 @@ if (-not (Test-Path -Path $destinationFolder)) {
 $vhdFileName = Read-Host "📌 Entrez le nom du fichier disque virtuel (ex: sauvegarde_$selectedProfile)"
 $vhdPath = "$destinationFolder\$vhdFileName.vhd"
 
+# Monter le dossier comme un lecteur virtuel (X:\)
+Write-Host "🔄 Montage du dossier en tant que lecteur X:"
+New-PSDrive -Name X -PSProvider FileSystem -Root $profilePath -Persist
+
+# Vérifier si le lecteur a bien été monté
+if (-not (Test-Path "X:\")) {
+    Write-Host "❌ Impossible de monter le dossier en lecteur virtuel."
+    exit
+}
+
 # Lancer la création du VHD
 Write-Host "⏳ Création de l'image disque VHD..."
-Start-Process -FilePath $disk2vhd_path -ArgumentList "$profilePath $vhdPath" -Wait -NoNewWindow
+Start-Process -FilePath $disk2vhd_path -ArgumentList "X: $vhdPath" -Wait -NoNewWindow
+
+# Démonter le lecteur virtuel après sauvegarde
+Write-Host "🔄 Démontage du lecteur virtuel..."
+Remove-PSDrive -Name X -Force
 
 # Vérification et confirmation
 if (Test-Path -Path $vhdPath) {
