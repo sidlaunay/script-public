@@ -72,6 +72,7 @@ sysinternals/efsDump.exe.ps1|Affiche les informations des fichiers chiffrés.
 sysinternals/Autoruns64.exe.ps1|Affiche les programmes qui démarrent automatiquement avec Windows.
 test/test.ps1|Aucune description disponible
 index.ps1|Aucune description disponible
+administration/backup_profile.ps1|Sauvegarde un profil utilisateur en le compressant dans un fichier ZIP.
 administration/ChrisTitus_Windows_Utility.ps1|The Ultimate Windows Utility - Clean up Windows 10 PowerShell Script
 administration/activer_defender.ps1|Script PowerShell pour réactiver Windows Defender
 administration/printer.ps1|Ouvre l'ancien menu des imprimantes et scanners du Panneau de configuration
