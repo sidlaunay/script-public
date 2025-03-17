@@ -84,4 +84,5 @@ reseau/Test_Port_Ouvert.ps1|Vérifie si un port donné est ouvert sur un serveur
 reseau/Speedtest.ps1|Aucune description disponible
 reseau/Test_Connectivite_Reseau.ps1|Teste la connexion réseau vers une IP spécifique avec des détails sur la latence et la connectivité.
 reseau/Liste_Connexions_TCP.ps1|Affiche toutes les connexions TCP actives et leur état (équivalent de 'netstat').
+apps/adv-ip-scanner.ps1|Advanced IP Scanner permet d'analyser le réseau local et de détecter les périphériques connectés
 apps/rufus-portable.ps1|Rufus Portable créer des média USB démarrables
