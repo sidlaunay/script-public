@@ -1,12 +1,83 @@
 
 activation/mas.ps1|Windows Office activator
 debug/debug_index.ps1|Script de débogage pour afficher et tester la structure des fichiers du menu SLAUNAY
+sysinternals/Cacheset64.exe.ps1|Modifie la taille du cache mémoire.
+sysinternals/disk2vhd64.exe.ps1|Convertit un disque physique en machine virtuelle.
+sysinternals/livekd64.exe.ps1|Utilise un débogueur noyau sur un système en cours d’exécution.
+sysinternals/ShellRunas.exe.ps1|Ajoute une option pour exécuter en tant qu’un autre utilisateur.
+sysinternals/psloglist64.exe.ps1|Extrait les événements des journaux Windows.
+sysinternals/logonsessions64.exe.ps1|Liste les sessions utilisateur actives.
+sysinternals/sync64.exe.ps1|Vide les caches en mémoire sur le disque.
+sysinternals/strings64.exe.ps1|Extrait les chaînes ASCII et Unicode des fichiers binaires.
+sysinternals/ADInsight64.exe.ps1|Outil de surveillance en temps réel pour les requêtes LDAP.
+sysinternals/LoadOrd64.exe.ps1|Affiche l’ordre de chargement des pilotes Windows.
+sysinternals/Bginfo64.exe.ps1|Affiche des informations système sur le bureau.
+sysinternals/pssuspend64.exe.ps1|Suspend et reprend l’exécution d’un processus.
+sysinternals/pskill64.exe.ps1|Tue un processus local ou distant.
+sysinternals/pendmoves64.exe.ps1|Liste les fichiers en attente de déplacement ou suppression au redémarrage.
+sysinternals/adrestore64.exe.ps1|Restaure les objets Active Directory supprimés.
+sysinternals/psfile64.exe.ps1|Liste les fichiers ouverts à distance.
+sysinternals/ntfsinfo64.exe.ps1|Affiche des informations détaillées sur un volume NTFS.
+sysinternals/CPUSTRES64.EXE.ps1|Génère une charge CPU pour les tests de performance.
+sysinternals/portmon.exe.ps1|Surveille l’activité des ports série et parallèle.
+sysinternals/RDCMan.exe.ps1|Gère plusieurs connexions Bureau à Distance.
+sysinternals/Coreinfo64.exe.ps1|Affiche les informations sur les processeurs et la mémoire cache.
+sysinternals/Desktops64.exe.ps1|Crée plusieurs bureaux virtuels.
+sysinternals/ADExplorer64.exe.ps1|Explorateur avancé pour Active Directory.
+sysinternals/RegDelNull64.exe.ps1|Supprime les clés de registre contenant des caractères nuls.
+sysinternals/handle64.exe.ps1|Affiche les fichiers ouverts par les processus.
+sysinternals/psshutdown64.exe.ps1|Éteint ou redémarre un ordinateur.
+sysinternals/hex2dec64.exe.ps1|Convertit un nombre hexadécimal en décimal et vice versa.
+sysinternals/regjump.exe.ps1|Ouvre un chemin de registre directement dans l’éditeur de registre.
+sysinternals/du64.exe.ps1|Affiche l’utilisation du disque par dossier.
+sysinternals/accesschk64.exe.ps1|Affiche les autorisations effectives sur les fichiers, registres et services.
+sysinternals/vmmap64.exe.ps1|Analyse la mémoire virtuelle d’un processus.
+sysinternals/Winobj64.exe.ps1|Affiche la structure interne des objets Windows.
+sysinternals/Autologon64.exe.ps1|Permet d’activer la connexion automatique à Windows.
+sysinternals/tcpview64.exe.ps1|Affiche en temps réel les connexions réseau TCP et UDP.
+sysinternals/AccessEnum.exe.ps1|Affiche les permissions sur les dossiers et le registre.
+sysinternals/Volumeid64.exe.ps1|Modifie l’ID d’un volume NTFS ou FAT.
+sysinternals/pipelist64.exe.ps1|Affiche la liste des pipes nommés actifs.
+sysinternals/sigcheck64.exe.ps1|Vérifie les signatures numériques des fichiers exécutables.
+sysinternals/Diskmon64.exe.ps1|Surveille l’activité des disques durs.
+sysinternals/PsGetsid64.exe.ps1|Affiche le SID d’un ordinateur ou utilisateur.
+sysinternals/PsExec64.exe.ps1|Exécute des processus sur un ordinateur distant.
+sysinternals/sdelete64.exe.ps1|Efface définitivement des fichiers et l’espace libre du disque.
+sysinternals/pspasswd64.exe.ps1|Modifie les mots de passe des comptes.
+sysinternals/junction64.exe.ps1|Crée des liens symboliques NTFS.
+sysinternals/PsInfo64.exe.ps1|Affiche des informations système détaillées.
+sysinternals/Contig64.exe.ps1|Optimise la fragmentation des fichiers spécifiques.
+sysinternals/DiskView64.exe.ps1|Affiche graphiquement la structure des secteurs d’un disque.
+sysinternals/streams64.exe.ps1|Affiche les flux alternatifs des fichiers NTFS.
+sysinternals/diskext64.exe.ps1|Affiche les mappings entre les volumes et les disques physiques.
+sysinternals/ctrl2cap.exe.ps1|Remappe la touche Caps Lock en touche Ctrl.
+sysinternals/psping64.exe.ps1|Mesure les performances du réseau.
+sysinternals/procdump64.exe.ps1|Crée des dumps mémoire des processus en cas d’anomalie.
+sysinternals/dbgview64.exe.ps1|Capture les appels de débogage de Windows.
+sysinternals/RAMMap64.exe.ps1|Analyse l’utilisation de la mémoire physique.
+sysinternals/ZoomIt64.exe.ps1|Outil pour zoomer et annoter l’écran pendant les présentations.
+sysinternals/notmyfault64.exe.ps1|Déclenche un crash système pour le test de récupération.
+sysinternals/Sysmon64.exe.ps1|Surveille et journalise l’activité du système.
+sysinternals/PsLoggedon64.exe.ps1|Affiche les utilisateurs connectés à une machine.
+sysinternals/procmon64.exe.ps1|Surveille en temps réel l’activité du système (fichiers, registre, processus).
+sysinternals/movefile64.exe.ps1|Planifie le déplacement ou la suppression d’un fichier au redémarrage.
+sysinternals/procexp64.exe.ps1|Affiche les processus en cours avec leurs fichiers et bibliothèques associées.
+sysinternals/FindLinks64.exe.ps1|Affiche les liens durs associés à un fichier.
+sysinternals/pslist64.exe.ps1|Affiche les informations des processus et threads.
+sysinternals/PsService64.exe.ps1|Affiche et gère les services Windows.
+sysinternals/whois64.exe.ps1|Effectue une recherche WHOIS pour un nom de domaine.
+sysinternals/Clockres64.exe.ps1|Affiche la résolution de l’horloge système.
+sysinternals/ShareEnum64.exe.ps1|Liste et analyse les partages réseau.
+sysinternals/efsDump.exe.ps1|Affiche les informations des fichiers chiffrés.
+sysinternals/Autoruns64.exe.ps1|Affiche les programmes qui démarrent automatiquement avec Windows.
 test/test.ps1|Aucune description disponible
 index.ps1|Aucune description disponible
+administration/backup_profile.ps1|Sauvegarde un profil utilisateur sous forme d'image WIM avec DISM.
 administration/ChrisTitus_Windows_Utility.ps1|The Ultimate Windows Utility - Clean up Windows 10 PowerShell Script
 administration/activer_defender.ps1|Script PowerShell pour réactiver Windows Defender
 administration/printer.ps1|Ouvre l'ancien menu des imprimantes et scanners du Panneau de configuration
 administration/desactiver_defender.ps1|Script PowerShell pour désactiver Windows Defender
+administration/7zip_wim.ps1|Télécharge et lance 7-Zip Portable pour explorer un fichier .WIM.
 reseau/Infos_Reseau.ps1|Affiche les informations réseau de la machine, y compris IP, DNS et passerelle.
 reseau/TCPview.ps1|TCPView.exe
 reseau/Test_Port_Ouvert.ps1|Vérifie si un port donné est ouvert sur un serveur distant.
