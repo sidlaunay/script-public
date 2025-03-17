@@ -77,6 +77,7 @@ administration/ChrisTitus_Windows_Utility.ps1|The Ultimate Windows Utility - Cle
 administration/activer_defender.ps1|Script PowerShell pour réactiver Windows Defender
 administration/printer.ps1|Ouvre l'ancien menu des imprimantes et scanners du Panneau de configuration
 administration/backup-profile-robocp.ps1|Sauvegarde rapide un profil utilisateur en le copiant avec Robocopy puis en le compressant avec 7-Zip.
+administration/WIMCapture_ProfileBackup.ps1|Crée une image WIM complète du profil utilisateur en évitant les fichiers verrouillés.
 administration/desactiver_defender.ps1|Script PowerShell pour désactiver Windows Defender
 administration/7zip_wim.ps1|Télécharge et lance 7-Zip Portable pour explorer un fichier .WIM.
 reseau/Infos_Reseau.ps1|Affiche les informations réseau de la machine, y compris IP, DNS et passerelle.
