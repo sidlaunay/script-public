@@ -153,7 +153,9 @@ function Browse-Folder {
                 $FilePath = "$Path/$($Selected.Name)".Trim('/')
                 Write-Host "▶️ Exécution du script dans une nouvelle fenêtre : $FilePath ..."
                 try {
-                    Start-Process powershell.exe -ArgumentList "-NoExit", "-Command irm $RepoBaseUrl/$FilePath | iex"
+                    $tmp = [System.IO.Path]::GetTempFileName() -replace '\.tmp$', '.ps1'
+                    Invoke-WebRequest "$RepoBaseUrl/$FilePath" -OutFile $tmp
+                    Start-Process powershell.exe -ArgumentList "-NoExit", "-File `"$tmp`""
                 }
                 catch {
                     Write-Host "❌ Erreur lors de l'exécution du script : $_"
@@ -174,8 +176,4 @@ $Files = Load-Files
 $Tree = Build-Tree -Files $Files
 Browse-Folder -Node $Tree
 
-
-
-
-
-# 21.02.25 08.33
+# 22.07.25 16.30
