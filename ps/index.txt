@@ -16,7 +16,7 @@ administration/desactiver_defender.ps1|Script PowerShell pour désactiver Window
 administration/backup-profile-robocp.ps1|Sauvegarde rapide un profil utilisateur en le copiant avec Robocopy puis en le compressant avec 7-Zip.
 administration/ChrisTitus_Windows_Utility.ps1|The Ultimate Windows Utility - Clean up Windows 10 PowerShell Script
 apps/adv-ip-scanner.ps1|Advanced IP Scanner permet d'analyser le réseau local et de détecter les périphériques connectés
-apps/unlocker-portable.ps1|Aucune description disponible
+apps/unlocker-portable.ps1|Unlocker Portable 1.9.2 permet de supprimer les fichiers verrouillés.
 apps/rufus-portable.ps1|Rufus Portable créer des média USB démarrables
 debug/debug_index.ps1|Script de débogage pour afficher et tester la structure des fichiers du menu SLAUNAY
 activation/mas.ps1|Windows Office activator
