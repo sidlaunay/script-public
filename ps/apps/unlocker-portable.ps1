@@ -1,6 +1,4 @@
-# DESCRIPTION: Unlocker Portable 1.9.2 permet de supprimer les fichiers verrouillés.
-
-# Vérifier si PowerShell est en mode administrateur
+# Vérifie si PowerShell est en mode administrateur
 function Test-Admin {
     $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object System.Security.Principal.WindowsPrincipal($currentUser)
@@ -13,50 +11,50 @@ if (-not (Test-Admin)) {
     exit
 }
 
-# Définir l'URL de téléchargement d'Unlocker Portable 1.9.2
+# URL de téléchargement
 $url = "http://dev.slaunay.com/soft/UnlockerPortable_1.9.2.zip"
 
-# Définir le chemin du répertoire temporaire
+# Chemins
 $tempDir = "$env:TEMP\UnlockerPortable"
 $zipPath = "$tempDir\UnlockerPortable.zip"
-$exePath = "$tempDir\UnlockerPortable.exe"
 
-# Vérifier si le dossier temporaire existe et le supprimer proprement
+# Supprime le dossier temporaire s'il existe
 if (Test-Path -Path $tempDir) {
     try {
         Get-Process -Name "unlocker" -ErrorAction SilentlyContinue | Stop-Process -Force
         Start-Sleep -Seconds 1
         Remove-Item -Path $tempDir -Recurse -Force -ErrorAction Stop
     } catch {
-        Write-Host "⚠ Impossible de supprimer $tempDir immédiatement. Essai après exécution..."
+        Write-Host "⚠ Impossible de supprimer $tempDir immédiatement. On continue..."
     }
 }
 
-# Recréer le répertoire temporaire
-New-Item -Path $tempDir -ItemType Directory | Out-Null
+# Recrée le dossier temporaire
+New-Item -Path $tempDir -ItemType Directory -Force | Out-Null
 
-# Télécharger Unlocker Portable
+# Télécharge Unlocker Portable
 Invoke-WebRequest -Uri $url -OutFile $zipPath
 
-# Décompresser si nécessaire
-if ($zipPath -like "*.zip") {
-    Expand-Archive -Path $zipPath -DestinationPath $tempDir -Force
-    Remove-Item -Path $zipPath -Force
-    $exe = Get-ChildItem -Path $tempDir -Filter *.exe | Select-Object -First 1
-    if ($exe) { $exePath = $exe.FullName }
+# Décompresse l’archive
+Expand-Archive -Path $zipPath -DestinationPath $tempDir -Force
+Remove-Item -Path $zipPath -Force
+
+# Cherche l’exécutable Unlocker dans tous les sous-dossiers
+$exePath = Get-ChildItem -Path $tempDir -Filter "UnlockerPortable.exe" -Recurse | Select-Object -First 1
+
+if ($exePath) {
+    try {
+        # Lance UnlockerPortable.exe (avec fenêtre, sinon ça ne s'affiche pas)
+        Start-Process -FilePath $exePath.FullName -Wait
+    } catch {
+        Write-Host "⚠ Erreur lors de l'exécution d'Unlocker : $_"
+    }
+    Start-Sleep -Seconds 2
+} else {
+    Write-Host "❌ Impossible de trouver UnlockerPortable.exe après extraction."
 }
 
-# Exécuter Unlocker Portable
-try {
-    Start-Process -FilePath $exePath -NoNewWindow -Wait
-} catch {
-    Write-Host "⚠ Erreur lors de l'exécution d'Unlocker : $_"
-}
-
-# Attendre quelques secondes pour s'assurer que le programme est bien terminé
-Start-Sleep -Seconds 2
-
-# Supprimer les fichiers temporaires après exécution
+# Nettoie les fichiers temporaires
 try {
     Remove-Item -Path $tempDir -Recurse -Force -ErrorAction Stop
     Write-Host "✅ Dossier temporaire supprimé : $tempDir"
